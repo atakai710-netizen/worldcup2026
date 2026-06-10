@@ -95,9 +95,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .card-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
 
 /* GROUP TABS */
-.group-scroll{display:flex;gap:5px;overflow-x:auto;margin-bottom:12px;padding-bottom:2px;scrollbar-width:none}
+.group-scroll{display:flex;gap:3px;margin-bottom:12px;padding-bottom:2px;flex-wrap:nowrap;overflow:visible}
 .group-scroll::-webkit-scrollbar{display:none}
-.gtab{flex-shrink:0;padding:5px 12px;font-size:12px;font-weight:700;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text3);cursor:pointer;transition:.15s}
+.gtab{flex:1;min-width:0;padding:5px 2px;font-size:11px;font-weight:700;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text3);cursor:pointer;transition:.15s;text-align:center;white-space:nowrap}
 .gtab.active{background:linear-gradient(135deg,#1976D2,#1565C0);border-color:#1976D2;color:#fff}
 
 /* MATCH */
@@ -1457,15 +1457,33 @@ function initSwipe(){
     const dy=e.changedTouches[0].clientY-sy;
     const dt=Date.now()-st;
     const target=e.target;
-    // グループタブの上は無視（グループスワイプが担当）
-    if(target.closest('.group-scroll,.tab-scroll'))return;
-    // ページ切り替え：大きいスワイプのみ（120px以上 かつ 速度0.5px/ms以上）
-    if(Math.abs(dx)<120)return;
-    if(Math.abs(dx)<Math.abs(dy)*2)return;
-    if(Math.abs(dx)/dt<0.5)return;
+    if(target.closest('.tab-scroll'))return;
+    // ページ切り替え：80px以上 かつ 速度0.4px/ms以上 かつ 横>縦×1.5
+    if(Math.abs(dx)<80)return;
+    if(Math.abs(dx)<Math.abs(dy)*1.5)return;
+    if(Math.abs(dx)/dt<0.4)return;
+    // GSページではグループ切り替えが優先（遅いスワイプはグループへ）
+    if(SECTIONS[currentSectionIdx]==='schedule'){
+      // 速いスワイプ（0.7px/ms以上）のみページ移動
+      if(Math.abs(dx)/dt<0.7)return;
+    }
     const navBtns=document.querySelectorAll('.nav-item');
     if(dx<0&&currentSectionIdx<SECTIONS.length-1)showSection(SECTIONS[currentSectionIdx+1],navBtns[currentSectionIdx+1]);
     else if(dx>0&&currentSectionIdx>0)showSection(SECTIONS[currentSectionIdx-1],navBtns[currentSectionIdx-1]);
+  },{passive:true});
+}
+function initGroupSwipe(){
+  const el=document.getElementById('match-list');if(!el||el._si)return;el._si=true;
+  const gk=Object.keys(GROUPS);let sx=0,sy=0,st=0;
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();},{passive:true});
+  el.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+    const dt=Date.now()-st;
+    if(Math.abs(dx)<40)return;
+    if(Math.abs(dx)<Math.abs(dy))return;
+    const idx=gk.indexOf(scheduleGroup);
+    if(dx<0&&idx<gk.length-1)setScheduleGroup(gk[idx+1]);
+    else if(dx>0&&idx>0)setScheduleGroup(gk[idx-1]);
   },{passive:true});
 }
 function openMenu(){
