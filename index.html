@@ -85,10 +85,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .nav-item.active{color:var(--blue3)}
 .nav-icon{font-size:20px;line-height:1}
 
-/* SLIDER */
-.content-wrapper{overflow:hidden;width:100%}
-.content-slider{display:flex;transition:transform .3s cubic-bezier(.4,0,.2,1);will-change:transform;align-items:flex-start;overflow:hidden}
-.content{padding:12px;min-width:100vw;width:100vw;box-sizing:border-box}
+/* TABS - スライダーなし */
+.content-wrapper{width:100%}
+.content{padding:12px;display:none}
+.content.active{display:block}
 
 /* CARDS */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
@@ -255,10 +255,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 
   <div class="app-body">
     <div class="content-wrapper">
-    <div class="content-slider" id="content-slider">
 
       <!-- 日程 -->
-      <div class="content" id="sec-schedule">
+      <div class="content active" id="sec-schedule">
         <div class="card">
           <div class="section-header">
             <div class="card-title" style="margin:0">グループステージ予想</div>
@@ -320,8 +319,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
         </div>
       </div>
 
-    </div>
-    </div>
   </div>
 
   <nav class="bottom-nav">
@@ -432,9 +429,11 @@ function showApp(){
   document.getElementById('auth-screen').classList.add('hidden');
   document.getElementById('app-screen').style.display='block';
   document.getElementById('app-screen').classList.add('visible');
-  const s=document.getElementById('content-slider');
-  if(s)s.style.transform='translateX(0)';
   currentSectionIdx=0;
+  SECTIONS.forEach((s,i)=>{
+    const el=document.getElementById('sec-'+s);
+    if(el)el.classList.toggle('active',i===0);
+  });
   document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===0));
   initSwipe();
 }
@@ -758,17 +757,21 @@ async function saveScore(matchId,home,away){
 function showSection(name,btn){
   const idx=SECTIONS.indexOf(name);if(idx===-1)return;
   currentSectionIdx=idx;
-  document.getElementById('content-slider').style.transform=`translateX(-${idx*100}vw)`;
+  SECTIONS.forEach(s=>{
+    const el=document.getElementById('sec-'+s);
+    if(el)el.classList.toggle('active',s===name);
+  });
   document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===idx));
   if(name==='predict')renderChampion();
   if(name==='odds')renderOdds();
   if(name==='ranking')renderRanking();
 }
 function initSwipe(){
-  const s=document.getElementById('content-slider');if(!s||s._si)return;s._si=true;
+  const wrapper=document.querySelector('.content-wrapper');
+  if(!wrapper||wrapper._si)return;wrapper._si=true;
   let sx=0,sy=0;
-  s.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
-  s.addEventListener('touchend',e=>{
+  wrapper.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  wrapper.addEventListener('touchend',e=>{
     const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
     if(Math.abs(dx)<Math.abs(dy)||Math.abs(dx)<50)return;
     const navBtns=document.querySelectorAll('.nav-item');
