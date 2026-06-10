@@ -365,14 +365,16 @@ let oddsGroup = 'A';
 let resultGroup = 'A';
 
 // ── Auth ──
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (session) {
+// 初回アクセス時のセッション確認のみonAuthStateChangeを使う
+let appInitialized = false;
+sb.auth.getSession().then(async ({data:{session}}) => {
+  if (session && !appInitialized) {
+    appInitialized = true;
     currentUser = session.user;
-    await loadProfile();
+    try { await loadProfile(); } catch(e) {}
     showApp();
-    await loadAll();
-  } else {
-    currentUser = null;
+    try { await loadAll(); } catch(e) {}
+  } else if (!session) {
     showAuth();
   }
 });
@@ -389,29 +391,18 @@ async function doLogin() {
   const btn = event.target;
   btn.textContent = '...';
   btn.disabled = true;
-  try {
-    const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
-    if (error) {
-      document.getElementById('login-error').textContent = 'メールアドレスまたはパスワードが正しくありません';
-      btn.textContent = 'ログイン';
-      btn.disabled = false;
-    } else if (data.session) {
-      currentUser = data.session.user;
-      // まず画面を切り替える
-      document.getElementById('auth-screen').style.display = 'none';
-      document.getElementById('app-screen').style.display = 'block';
-      btn.textContent = 'ログイン';
-      btn.disabled = false;
-      // その後データ読み込み
-      try { await loadProfile(); } catch(e) { console.error('loadProfile error:', e); }
-      showApp();
-      try { await loadAll(); } catch(e) { console.error('loadAll error:', e); }
-    }
-  } catch(e) {
-    document.getElementById('login-error').textContent = 'エラー: ' + e.message;
-    btn.textContent = 'ログイン';
-    btn.disabled = false;
+  const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
+  btn.textContent = 'ログイン';
+  btn.disabled = false;
+  if (error) {
+    document.getElementById('login-error').textContent = 'メールアドレスまたはパスワードが正しくありません';
+    return;
   }
+  appInitialized = true;
+  currentUser = data.session.user;
+  try { await loadProfile(); } catch(e) { console.error(e); }
+  showApp();
+  try { await loadAll(); } catch(e) { console.error(e); }
 }
 
 async function doSignup() {
@@ -438,8 +429,12 @@ async function loadProfile() {
 }
 
 async function logout() {
+  appInitialized = false;
   await sb.auth.signOut();
+  currentUser = null;
+  currentProfile = null;
   closeMenu({target:document.getElementById('menu-overlay')});
+  showAuth();
 }
 
 function showAuth() {
