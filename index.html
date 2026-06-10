@@ -68,9 +68,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 .nav-icon{font-size:22px;line-height:1}
 
 /* ── Content ── */
-.content{padding:16px;max-width:600px;margin:0 auto}
-.section{display:none}
-.section.active{display:block}
+.content-wrapper{overflow:hidden;width:100%}
+.content-slider{display:flex;transition:transform .3s cubic-bezier(.4,0,.2,1);will-change:transform}
+.content{padding:16px;max-width:600px;margin:0 auto;min-width:100vw;width:100vw}
+.section{display:block}
 
 /* ── Cards ── */
 .card{background:#fff;border-radius:var(--radius);padding:16px;margin-bottom:12px;box-shadow:var(--shadow)}
@@ -172,7 +173,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
 <div id="auth-screen">
   <div class="auth-logo">⚽</div>
   <div class="auth-title">WC2026 予想</div>
-  <div class="auth-sub">仲間内ワールドカップ予想アプリ</div>
+  <div class="auth-sub">🏆定例会🏆 ワールドカップ予想アプリ</div>
   <div class="auth-card">
     <div class="auth-tabs">
       <button class="auth-tab active" onclick="switchAuthTab('login')">ログイン</button>
@@ -218,9 +219,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
     </div>
   </div>
 
-  <div class="content">
+  <div class="content-wrapper">
+  <div class="content-slider" id="content-slider">
     <!-- 日程・予想 -->
-    <div id="sec-schedule" class="section active">
+    <div class="content" id="sec-schedule">
       <div class="card">
         <div class="section-header">
           <div class="card-title" style="margin:0">グループステージ予想</div>
@@ -243,7 +245,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
     </div>
 
     <!-- 優勝予想 -->
-    <div id="sec-champion" class="section">
+    <div class="content" id="sec-champion">
       <div class="card">
         <div class="card-title">あなたの優勝予想</div>
         <div class="champ-grid" id="champ-grid"></div>
@@ -255,7 +257,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
     </div>
 
     <!-- オッズ -->
-    <div id="sec-odds" class="section">
+    <div class="content" id="sec-odds">
       <div class="card">
         <div class="card-title">優勝オッズ（予想ベース）</div>
         <div id="odds-list"><div class="loading"><div class="spinner"></div></div></div>
@@ -268,7 +270,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
     </div>
 
     <!-- ランキング -->
-    <div id="sec-ranking" class="section">
+    <div class="content" id="sec-ranking">
       <div class="card">
         <div class="card-title">仲間内ランキング</div>
         <div style="font-size:11px;color:var(--text3);margin-bottom:10px">正解+3pt｜優勝予想正解+10pt</div>
@@ -283,6 +285,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku
         </div>
       </div>
     </div>
+  </div>
   </div>
 
   <!-- Bottom Nav -->
@@ -486,29 +489,41 @@ function renderMatchList() {
     const p = myPredictions[m.id]||'';
     const res = allResults[m.id]||'';
     const correct = res && p === res;
+    const hf = FLAGS[m.home]||'';
+    const af = FLAGS[m.away]||'';
+    const resLabel = res==='W'?`${hf}勝`:res==='D'?'引分':res==='L'?`${af}勝`:'';
     return `<div class="match-row">
       <div class="match-teams">
-        <span class="team right">${FLAGS[m.home]||''} ${m.home}</span>
+        <span class="team right">${hf} ${m.home}</span>
         <span class="vs">vs</span>
-        <span class="team">${FLAGS[m.away]||''} ${m.away}</span>
-        ${res ? `<span class="badge badge-${res==='W'?'green':res==='D'?'amber':'red'}" style="margin-left:auto;font-size:10px">${res==='W'?'H勝':'引分'||res==='D'?'引分':'A勝'}${correct?'✓':''}</span>` : ''}
+        <span class="team">${af} ${m.away}</span>
+        ${res ? `<span class="badge badge-${res==='W'?'green':res==='D'?'amber':'red'}" style="margin-left:auto;font-size:10px">${resLabel}${correct?' ✓':''}</span>` : ''}
       </div>
       <div class="pred-row">
-        <button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W')">🏠 ホーム勝ち</button>
-        <button class="pred-btn${p==='D'?' sel-d':''}" onclick="setPred('${m.id}','D')">🤝 引き分け</button>
-        <button class="pred-btn${p==='L'?' sel-l':''}" onclick="setPred('${m.id}','L')">✈️ アウェー勝ち</button>
+        <button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W','${m.home}','${m.away}')">${hf} ${m.home}</button>
+        <button class="pred-btn${p==='D'?' sel-d':''}" onclick="setPred('${m.id}','D','${m.home}','${m.away}')">🤝 引き分け</button>
+        <button class="pred-btn${p==='L'?' sel-l':''}" onclick="setPred('${m.id}','L','${m.home}','${m.away}')">${af} ${m.away}</button>
       </div>
     </div>`;
   }).join('');
 }
 
-async function setPred(matchId, result) {
+async function setPred(matchId, result, home, away) {
   if (!currentUser) return;
   const prev = myPredictions[matchId];
+  // 同じボタンをもう一度タップしたら解除
+  if (prev === result) {
+    delete myPredictions[matchId];
+    renderMatchList();
+    updatePredCount();
+    await sb.from('predictions').delete().match({user_id:currentUser.id, match_id:matchId});
+    await loadAllPredictions();
+    showToast('予想を解除しました');
+    return;
+  }
   myPredictions[matchId] = result;
   renderMatchList();
   updatePredCount();
-
   if (prev) {
     await sb.from('predictions').update({result}).match({user_id:currentUser.id, match_id:matchId});
   } else {
@@ -706,15 +721,45 @@ async function setResult(matchId, result) {
 }
 
 // ── Navigation ──
+const SECTIONS = ['schedule','champion','odds','ranking'];
+let currentSectionIdx = 0;
+
 function showSection(name, btn) {
-  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-  document.getElementById('sec-'+name).classList.add('active');
-  btn.classList.add('active');
+  const idx = SECTIONS.indexOf(name);
+  if (idx === -1) return;
+  currentSectionIdx = idx;
+  document.getElementById('content-slider').style.transform = `translateX(-${idx * 100}vw)`;
+  document.querySelectorAll('.nav-item').forEach((b,i) => b.classList.toggle('active', i===idx));
   if (name==='champion') { renderChampion(); }
   if (name==='odds') { renderOdds(); }
   if (name==='ranking') { renderRanking(); }
 }
+
+// スワイプ操作
+(function(){
+  const slider = document.getElementById('content-slider');
+  if (!slider) return;
+  let startX = 0, startY = 0, isDragging = false;
+  function onStart(e) {
+    const t = e.touches ? e.touches[0] : e;
+    startX = t.clientX; startY = t.clientY; isDragging = true;
+  }
+  function onEnd(e) {
+    if (!isDragging) return;
+    isDragging = false;
+    const t = e.changedTouches ? e.changedTouches[0] : e;
+    const dx = t.clientX - startX;
+    const dy = t.clientY - startY;
+    if (Math.abs(dx) < Math.abs(dy) || Math.abs(dx) < 50) return;
+    if (dx < 0 && currentSectionIdx < SECTIONS.length - 1) {
+      showSection(SECTIONS[currentSectionIdx + 1], document.querySelectorAll('.nav-item')[currentSectionIdx + 1]);
+    } else if (dx > 0 && currentSectionIdx > 0) {
+      showSection(SECTIONS[currentSectionIdx - 1], document.querySelectorAll('.nav-item')[currentSectionIdx - 1]);
+    }
+  }
+  slider.addEventListener('touchstart', onStart, {passive:true});
+  slider.addEventListener('touchend', onEnd, {passive:true});
+})();
 
 function openMenu() { document.getElementById('menu-overlay').classList.add('show'); }
 function closeMenu(e) { if(e.target===document.getElementById('menu-overlay')) document.getElementById('menu-overlay').classList.remove('show'); }
