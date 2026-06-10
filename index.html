@@ -685,15 +685,15 @@ async function autoSyncResults(){
 
 async function manualSync(){
   if(!currentProfile?.is_admin)return;
-  lastAutoSync=0; // タイムリミットをリセットして強制実行
+  lastAutoSync=0;
   showToast('🔄 同期中...');
   await autoSyncResults();
   renderResultMatches();
 }
+async function loadResults(){
   const{data}=await sb.from('match_results').select('*');
   allResults={};
   (data||[]).forEach(r=>{allResults[r.match_id]={result:r.result,home_score:r.home_score,away_score:r.away_score};});
-  // ロード後に自動同期チェック（管理者のみ）
   if(currentProfile?.is_admin)autoSyncResults();
 }
 async function loadChampPicks(){const{data}=await sb.from('champion_picks').select('*');champPicks=data||[];}
