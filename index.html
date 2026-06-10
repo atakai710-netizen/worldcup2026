@@ -386,8 +386,20 @@ function switchAuthTab(tab) {
 async function doLogin() {
   const email = document.getElementById('login-email').value.trim();
   const pass = document.getElementById('login-pass').value;
-  const {error} = await sb.auth.signInWithPassword({email, password:pass});
-  if (error) document.getElementById('login-error').textContent = 'メールアドレスまたはパスワードが正しくありません';
+  const btn = event.target;
+  btn.textContent = '...';
+  btn.disabled = true;
+  const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
+  btn.textContent = 'ログイン';
+  btn.disabled = false;
+  if (error) {
+    document.getElementById('login-error').textContent = 'メールアドレスまたはパスワードが正しくありません';
+  } else if (data.session) {
+    currentUser = data.session.user;
+    await loadProfile();
+    showApp();
+    await loadAll();
+  }
 }
 
 async function doSignup() {
@@ -425,6 +437,12 @@ function showAuth() {
 function showApp() {
   document.getElementById('auth-screen').style.display = 'none';
   document.getElementById('app-screen').style.display = 'block';
+  // スライダー初期位置をリセット
+  const slider = document.getElementById('content-slider');
+  if (slider) slider.style.transform = 'translateX(0)';
+  currentSectionIdx = 0;
+  document.querySelectorAll('.nav-item').forEach((b,i) => b.classList.toggle('active', i===0));
+  initSwipe();
 }
 
 // ── Data Loading ──
@@ -736,9 +754,10 @@ function showSection(name, btn) {
 }
 
 // スワイプ操作
-(function(){
+function initSwipe() {
   const slider = document.getElementById('content-slider');
-  if (!slider) return;
+  if (!slider || slider._swipeInit) return;
+  slider._swipeInit = true;
   let startX = 0, startY = 0, isDragging = false;
   function onStart(e) {
     const t = e.touches ? e.touches[0] : e;
@@ -759,7 +778,7 @@ function showSection(name, btn) {
   }
   slider.addEventListener('touchstart', onStart, {passive:true});
   slider.addEventListener('touchend', onEnd, {passive:true});
-})();
+}
 
 function openMenu() { document.getElementById('menu-overlay').classList.add('show'); }
 function closeMenu(e) { if(e.target===document.getElementById('menu-overlay')) document.getElementById('menu-overlay').classList.remove('show'); }
