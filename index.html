@@ -389,16 +389,21 @@ async function doLogin() {
   const btn = event.target;
   btn.textContent = '...';
   btn.disabled = true;
-  const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
-  btn.textContent = 'ログイン';
-  btn.disabled = false;
-  if (error) {
-    document.getElementById('login-error').textContent = 'メールアドレスまたはパスワードが正しくありません';
-  } else if (data.session) {
-    currentUser = data.session.user;
-    await loadProfile();
-    showApp();
-    await loadAll();
+  try {
+    const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
+    if (error) {
+      document.getElementById('login-error').textContent = 'メールアドレスまたはパスワードが正しくありません';
+    } else if (data.session) {
+      currentUser = data.session.user;
+      try { await loadProfile(); } catch(e) { console.error('loadProfile error:', e); }
+      showApp();
+      try { await loadAll(); } catch(e) { console.error('loadAll error:', e); }
+    }
+  } catch(e) {
+    document.getElementById('login-error').textContent = 'エラーが発生しました: ' + e.message;
+  } finally {
+    btn.textContent = 'ログイン';
+    btn.disabled = false;
   }
 }
 
