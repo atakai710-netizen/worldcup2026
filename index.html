@@ -515,26 +515,38 @@ function renderMatchList(){
 async function setPred(matchId,result){
   if(!currentUser)return;
   const prev=myPredictions[matchId];
+
   if(prev===result){
+    // 解除
     delete myPredictions[matchId];
+    // ローカルのallPredictionsも更新
+    allPredictions=allPredictions.filter(p=>!(p.user_id===currentUser.id&&p.match_id===matchId));
     renderMatchList();updatePredCount();
     await sb.from('predictions').delete().match({user_id:currentUser.id,match_id:matchId});
-    await loadAllPredictions();
     showToast('予想を解除しました');return;
   }
+
+  // 保存
   myPredictions[matchId]=result;
+  // ローカルのallPredictionsも更新（APIコールなし）
+  const existIdx=allPredictions.findIndex(p=>p.user_id===currentUser.id&&p.match_id===matchId);
+  if(existIdx>=0)allPredictions[existIdx].result=result;
+  else allPredictions.push({user_id:currentUser.id,match_id:matchId,result});
   renderMatchList();updatePredCount();
+
   if(prev)await sb.from('predictions').update({result}).match({user_id:currentUser.id,match_id:matchId});
   else await sb.from('predictions').insert({user_id:currentUser.id,match_id:matchId,result});
-  await loadAllPredictions();
   showToast('予想を保存しました ✓');
 }
 
 // ── アプリ再表示時に最新データを取得 ──
+let lastVisibilityLoad=0;
 document.addEventListener('visibilitychange',async()=>{
   if(document.visibilityState==='visible'&&currentUser){
+    const now=Date.now();
+    if(now-lastVisibilityLoad<30000)return; // 30秒以内の再取得はスキップ
+    lastVisibilityLoad=now;
     await loadMyPredictions();
-    await loadAllPredictions();
     renderMatchList();
     updatePredCount();
   }
