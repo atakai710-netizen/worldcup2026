@@ -714,9 +714,11 @@ function initGroupSwipe(){
   el.addEventListener('touchend',e=>{
     const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
     const dt=Date.now()-st;
-    if(Math.abs(dx)<80)return;
-    if(Math.abs(dx)<Math.abs(dy)*1.5)return;
-    if(Math.abs(dx)/dt<0.4)return;
+    // 小さいスワイプ（40px以上）でグループ切り替え
+    if(Math.abs(dx)<40)return;
+    if(Math.abs(dx)<Math.abs(dy))return;
+    // 大きく速いスワイプはページ切り替えに任せる
+    if(Math.abs(dx)>=120&&Math.abs(dx)/dt>=0.5)return;
     const idx=gk.indexOf(scheduleGroup);
     if(dx<0&&idx<gk.length-1)setScheduleGroup(gk[idx+1]);
     else if(dx>0&&idx>0)setScheduleGroup(gk[idx-1]);
@@ -1066,10 +1068,21 @@ function getKORoundTeams(round,idx){
 function renderBracket(){
   const el=document.getElementById('bracket-inner');
   if(!el)return;
+
+  // グループステージ全試合終了チェック
+  const totalGSMatches=ALL_MATCHES.length; // 72試合
+  const completedGS=Object.keys(allResults).filter(id=>ALL_MATCHES.find(m=>m.id===id)).length;
+  const gsComplete=completedGS>=totalGSMatches;
+
   let html='<div class="bracket">';
   KO_ROUNDS_DEF.forEach(round=>{
     html+=`<div class="bround"><div class="bround-title">${round.label}</div>`;
     for(let i=0;i<round.count;i++){
+      // R32はGS完了後のみ表示
+      if(round.id==='r32'&&!gsComplete){
+        html+=`<div class="bmatch" style="opacity:.4"><div class="btbd">GS終了後</div><div class="bdiv"></div><div class="btbd">に確定</div></div>`;
+        continue;
+      }
       const res=getKOResult(round.id,i);
       const{home,away}=getKORoundTeams(round.id,i);
       const hs=res?.home_score;const as=res?.away_score;
@@ -1094,8 +1107,19 @@ function renderBracket(){
     <div class="bchamp"><div class="bchamp-trophy">🏆</div><div class="bchamp-label">${finalRes?.winner?finalRes.winner:'CHAMPION'}</div></div>
   </div>`;
   html+='</div>';
+
+  if(!gsComplete){
+    html=`<div class="card" style="text-align:center;padding:32px 20px">
+      <div style="font-size:32px;margin-bottom:8px">🔒</div>
+      <div style="font-size:14px;font-weight:600;color:var(--text2);margin-bottom:4px">グループステージ終了後に解放</div>
+      <div style="font-size:12px;color:var(--text3)">${completedGS} / ${totalGSMatches} 試合完了</div>
+      <div style="margin-top:12px;height:6px;background:var(--bg3);border-radius:3px;overflow:hidden">
+        <div style="height:100%;background:var(--blue2);border-radius:3px;width:${Math.round(completedGS/totalGSMatches*100)}%"></div>
+      </div>
+    </div>`;
+  }
+
   el.innerHTML=html;
-  // 管理者用KO入力
   if(currentProfile?.is_admin)renderKORoundTabs();
 }
 
@@ -1333,14 +1357,13 @@ function initSwipe(){
     const dx=e.changedTouches[0].clientX-sx;
     const dy=e.changedTouches[0].clientY-sy;
     const dt=Date.now()-st;
-    // 横スクロール可能な要素の上は無視
     const target=e.target;
-    const isInScrollable=target.closest('.group-scroll,.tab-scroll,#bracket-wrap,.bracket-wrap');
-    if(isInScrollable)return;
-    // 閾値：距離80px以上 かつ 速度0.4px/ms以上 かつ 縦より横が大きい
-    if(Math.abs(dx)<80)return;
-    if(Math.abs(dx)<Math.abs(dy)*1.5)return;
-    if(Math.abs(dx)/dt<0.4)return;
+    // グループタブの上は無視（グループスワイプが担当）
+    if(target.closest('.group-scroll,.tab-scroll'))return;
+    // ページ切り替え：大きいスワイプのみ（120px以上 かつ 速度0.5px/ms以上）
+    if(Math.abs(dx)<120)return;
+    if(Math.abs(dx)<Math.abs(dy)*2)return;
+    if(Math.abs(dx)/dt<0.5)return;
     const navBtns=document.querySelectorAll('.nav-item');
     if(dx<0&&currentSectionIdx<SECTIONS.length-1)showSection(SECTIONS[currentSectionIdx+1],navBtns[currentSectionIdx+1]);
     else if(dx>0&&currentSectionIdx>0)showSection(SECTIONS[currentSectionIdx-1],navBtns[currentSectionIdx-1]);
