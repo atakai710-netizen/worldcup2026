@@ -516,7 +516,103 @@ const TOP_SCORERS=[
 ];
 const KO_ROUNDS=[{id:'r32',label:'ラウンド32',matches:16},{id:'r16',label:'ラウンド16',matches:8},{id:'qf',label:'準々決勝',matches:4},{id:'sf',label:'準決勝',matches:2},{id:'f',label:'決勝',matches:1}];
 
-function genMatches(){const m=[];Object.entries(GROUPS).forEach(([g,ts])=>{for(let i=0;i<ts.length;i++)for(let j=i+1;j<ts.length;j++)m.push({id:`${g}${i}${j}`,group:g,home:ts[i],away:ts[j]});});return m;}
+// JST試合スケジュール（match_id → {date, time, venue}）
+const MATCH_SCHEDULE={
+  // Group A
+  'A01':{date:'6/12',time:'4:00',venue:'メキシコシティ'},
+  'A02':{date:'6/12',time:'11:00',venue:'グアダラハラ'},
+  'A12':{date:'6/19',time:'1:00',venue:'アトランタ'},
+  'A13':{date:'6/19',time:'10:00',venue:'グアダラハラ'},
+  'A23':{date:'6/25',time:'10:00',venue:'メキシコシティ'},
+  'A03':{date:'6/25',time:'10:00',venue:'モンテレー'},
+  // Group B
+  'B01':{date:'6/13',time:'4:00',venue:'トロント'},
+  'B23':{date:'6/13',time:'4:00',venue:'サンフランシスコ'},
+  'B02':{date:'6/19',time:'7:00',venue:'バンクーバー'},
+  'B13':{date:'6/19',time:'4:00',venue:'ロサンゼルス'},
+  'B03':{date:'6/25',time:'4:00',venue:'バンクーバー'},
+  'B12':{date:'6/25',time:'4:00',venue:'シアトル'},
+  // Group C
+  'C01':{date:'6/14',time:'7:00',venue:'ニューヨーク'},
+  'C23':{date:'6/14',time:'10:00',venue:'ボストン'},
+  'C02':{date:'6/20',time:'7:00',venue:'ボストン'},
+  'C13':{date:'6/20',time:'9:30',venue:'フィラデルフィア'},
+  'C03':{date:'6/25',time:'7:00',venue:'マイアミ'},
+  'C12':{date:'6/25',time:'7:00',venue:'アトランタ'},
+  // Group D
+  'D01':{date:'6/13',time:'10:00',venue:'ロサンゼルス'},
+  'D23':{date:'6/14',time:'13:00',venue:'バンクーバー'},
+  'D02':{date:'6/20',time:'4:00',venue:'シアトル'},
+  'D13':{date:'6/20',time:'12:00',venue:'サンフランシスコ'},
+  'D03':{date:'6/26',time:'11:00',venue:'ロサンゼルス'},
+  'D12':{date:'6/26',time:'11:00',venue:'サンフランシスコ'},
+  // Group E
+  'E01':{date:'6/15',time:'2:00',venue:'ヒューストン'},
+  'E23':{date:'6/15',time:'8:00',venue:'フィラデルフィア'},
+  'E02':{date:'6/21',time:'5:00',venue:'トロント'},
+  'E13':{date:'6/21',time:'9:00',venue:'カンザスシティ'},
+  'E03':{date:'6/26',time:'5:00',venue:'ニューヨーク'},
+  'E12':{date:'6/26',time:'5:00',venue:'フィラデルフィア'},
+  // Group F
+  'F01':{date:'6/15',time:'5:00',venue:'ダラス'},
+  'F23':{date:'6/15',time:'11:00',venue:'モンテレー'},
+  'F02':{date:'6/21',time:'2:00',venue:'ヒューストン'},
+  'F13':{date:'6/21',time:'13:00',venue:'モンテレー'},
+  'F03':{date:'6/26',time:'8:00',venue:'ダラス'},
+  'F12':{date:'6/26',time:'8:00',venue:'カンザスシティ'},
+  // Group G
+  'G01':{date:'6/16',time:'4:00',venue:'シアトル'},
+  'G23':{date:'6/16',time:'10:00',venue:'ロサンゼルス'},
+  'G02':{date:'6/22',time:'4:00',venue:'ロサンゼルス'},
+  'G13':{date:'6/22',time:'10:00',venue:'バンクーバー'},
+  'G03':{date:'6/27',time:'12:00',venue:'バンクーバー'},
+  'G12':{date:'6/27',time:'12:00',venue:'シアトル'},
+  // Group H
+  'H01':{date:'6/16',time:'1:00',venue:'アトランタ'},
+  'H23':{date:'6/16',time:'7:00',venue:'マイアミ'},
+  'H02':{date:'6/22',time:'1:00',venue:'アトランタ'},
+  'H13':{date:'6/22',time:'7:00',venue:'マイアミ'},
+  'H03':{date:'6/27',time:'9:00',venue:'グアダラハラ'},
+  'H12':{date:'6/27',time:'9:00',venue:'ヒューストン'},
+  // Group I
+  'I01':{date:'6/17',time:'4:00',venue:'ニューヨーク'},
+  'I23':{date:'6/17',time:'7:00',venue:'ボストン'},
+  'I02':{date:'6/23',time:'6:00',venue:'フィラデルフィア'},
+  'I13':{date:'6/23',time:'9:00',venue:'ニューヨーク'},
+  'I03':{date:'6/27',time:'4:00',venue:'ボストン'},
+  'I12':{date:'6/27',time:'4:00',venue:'トロント'},
+  // Group J
+  'J01':{date:'6/17',time:'10:00',venue:'カンザスシティ'},
+  'J23':{date:'6/17',time:'13:00',venue:'サンフランシスコ'},
+  'J02':{date:'6/23',time:'2:00',venue:'ダラス'},
+  'J13':{date:'6/23',time:'12:00',venue:'サンフランシスコ'},
+  'J03':{date:'6/28',time:'11:00',venue:'カンザスシティ'},
+  'J12':{date:'6/28',time:'11:00',venue:'ダラス'},
+  // Group K
+  'K01':{date:'6/18',time:'2:00',venue:'ヒューストン'},
+  'K23':{date:'6/18',time:'11:00',venue:'メキシコシティ'},
+  'K02':{date:'6/24',time:'2:00',venue:'ヒューストン'},
+  'K13':{date:'6/24',time:'11:00',venue:'グアダラハラ'},
+  'K03':{date:'6/28',time:'8:30',venue:'マイアミ'},
+  'K12':{date:'6/28',time:'8:30',venue:'アトランタ'},
+  // Group L
+  'L01':{date:'6/18',time:'5:00',venue:'ダラス'},
+  'L23':{date:'6/18',time:'8:00',venue:'トロント'},
+  'L02':{date:'6/24',time:'5:00',venue:'ボストン'},
+  'L13':{date:'6/24',time:'8:00',venue:'トロント'},
+  'L03':{date:'6/28',time:'6:00',venue:'ニューヨーク'},
+  'L12':{date:'6/28',time:'6:00',venue:'フィラデルフィア'},
+};
+
+function genMatches(){
+  const m=[];
+  Object.entries(GROUPS).forEach(([g,ts])=>{
+    for(let i=0;i<ts.length;i++)
+      for(let j=i+1;j<ts.length;j++)
+        m.push({id:`${g}${i}${j}`,group:g,home:ts[i],away:ts[j]});
+  });
+  return m;
+}
 const ALL_MATCHES=genMatches();
 
 let currentUser=null,currentProfile=null,appInitialized=false;
@@ -734,6 +830,8 @@ function renderMatchList(){
     const correct=res&&p===res;
     const hf=FLAGS[m.home]||'';const af=FLAGS[m.away]||'';
     const scoreBadge=(hs!=null&&as!=null)?`<span class="score-badge">${hs} - ${as}</span>`:`<span class="score-badge upcoming">試合前</span>`;
+    const sch=MATCH_SCHEDULE[m.id];
+    const timeLabel=sch?`<span style="font-size:10px;color:var(--text3);margin-left:4px">${sch.date} ${sch.time} JST</span>`:'';
     return`<div class="match-row">
       <div class="match-header">
         <span class="team right">${hf} ${m.home}</span>
@@ -741,6 +839,7 @@ function renderMatchList(){
         <span class="team">${af} ${m.away}</span>
         ${correct?`<span class="correct-mark">✓</span>`:''}
       </div>
+      <div style="font-size:10px;color:var(--text3);margin-bottom:4px;padding-left:2px">${sch?`📅 ${sch.date} ${sch.time} JST ／ ${sch.venue}`:''}</div>
       <div class="pred-row">
         <button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W')">${hf} ${m.home}</button>
         <button class="pred-btn${p==='D'?' sel-d':''}" onclick="setPred('${m.id}','D')">🤝 引き分け</button>
