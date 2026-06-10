@@ -369,7 +369,7 @@ sb.auth.getSession().then(async({data:{session}})=>{
     appInitialized=true;currentUser=session.user;
     try{await loadProfile();}catch(e){}
     showApp();
-    try{await loadAll();}catch(e){}
+    await loadAll(); // データ取得完了後に描画
   } else {
     showAuth();
   }
@@ -436,7 +436,10 @@ async function loadAll(){
 }
 async function loadMyPredictions(){
   if(!currentUser)return;
-  const{data}=await sb.from('predictions').select('match_id,result').eq('user_id',currentUser.id);
+  const{data}=await sb.from('predictions')
+    .select('match_id,result')
+    .eq('user_id',currentUser.id)
+    .order('created_at',{ascending:false});
   myPredictions={};
   (data||[]).forEach(p=>{myPredictions[p.match_id]=p.result;});
   updatePredCount();
