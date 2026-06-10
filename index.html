@@ -379,11 +379,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-item active" onclick="showSection('schedule',this)"><span class="nav-icon">📅</span><span>日程</span></button>
-    <button class="nav-item" onclick="showSection('predict',this)"><span class="nav-icon">🎯</span><span>予想</span></button>
-    <button class="nav-item" onclick="showSection('standings',this)"><span class="nav-icon">📋</span><span>成績</span></button>
+    <button class="nav-item active" onclick="showSection('schedule',this)"><span class="nav-icon">📅</span><span>GS</span></button>
+    <button class="nav-item" onclick="showSection('predict',this)"><span class="nav-icon">🎯</span><span>各予想</span></button>
+    <button class="nav-item" onclick="showSection('standings',this)"><span class="nav-icon">📋</span><span>順位表</span></button>
     <button class="nav-item" onclick="showSection('bracket',this)"><span class="nav-icon">🏆</span><span>KO</span></button>
-    <button class="nav-item" onclick="showSection('ranking',this)"><span class="nav-icon">🥇</span><span>順位</span></button>
+    <button class="nav-item" onclick="showSection('ranking',this)"><span class="nav-icon">🥇</span><span>集計</span></button>
   </nav>
 </div>
 
@@ -709,11 +709,14 @@ function renderScheduleGroupTabs(){
 function setScheduleGroup(g){scheduleGroup=g;renderScheduleGroupTabs();renderMatchList();}
 function initGroupSwipe(){
   const el=document.getElementById('match-list');if(!el||el._si)return;el._si=true;
-  const gk=Object.keys(GROUPS);let sx=0,sy=0;
-  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  const gk=Object.keys(GROUPS);let sx=0,sy=0,st=0;
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();},{passive:true});
   el.addEventListener('touchend',e=>{
     const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
-    if(Math.abs(dx)<Math.abs(dy)||Math.abs(dx)<50)return;
+    const dt=Date.now()-st;
+    if(Math.abs(dx)<80)return;
+    if(Math.abs(dx)<Math.abs(dy)*1.5)return;
+    if(Math.abs(dx)/dt<0.4)return;
     const idx=gk.indexOf(scheduleGroup);
     if(dx<0&&idx<gk.length-1)setScheduleGroup(gk[idx+1]);
     else if(dx>0&&idx>0)setScheduleGroup(gk[idx-1]);
@@ -1320,11 +1323,24 @@ function showSection(name,btn){
 function initSwipe(){
   const wrapper=document.querySelector('.content-wrapper');
   if(!wrapper||wrapper._si)return;wrapper._si=true;
-  let sx=0,sy=0;
-  wrapper.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  let sx=0,sy=0,st=0;
+  wrapper.addEventListener('touchstart',e=>{
+    sx=e.touches[0].clientX;
+    sy=e.touches[0].clientY;
+    st=Date.now();
+  },{passive:true});
   wrapper.addEventListener('touchend',e=>{
-    const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
-    if(Math.abs(dx)<Math.abs(dy)||Math.abs(dx)<50)return;
+    const dx=e.changedTouches[0].clientX-sx;
+    const dy=e.changedTouches[0].clientY-sy;
+    const dt=Date.now()-st;
+    // 横スクロール可能な要素の上は無視
+    const target=e.target;
+    const isInScrollable=target.closest('.group-scroll,.tab-scroll,#bracket-wrap,.bracket-wrap');
+    if(isInScrollable)return;
+    // 閾値：距離80px以上 かつ 速度0.4px/ms以上 かつ 縦より横が大きい
+    if(Math.abs(dx)<80)return;
+    if(Math.abs(dx)<Math.abs(dy)*1.5)return;
+    if(Math.abs(dx)/dt<0.4)return;
     const navBtns=document.querySelectorAll('.nav-item');
     if(dx<0&&currentSectionIdx<SECTIONS.length-1)showSection(SECTIONS[currentSectionIdx+1],navBtns[currentSectionIdx+1]);
     else if(dx>0&&currentSectionIdx>0)showSection(SECTIONS[currentSectionIdx-1],navBtns[currentSectionIdx-1]);
