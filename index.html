@@ -28,10 +28,8 @@
   --radius:14px;--radius-sm:10px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow-x:hidden;overflow-y:hidden}
-body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;background:var(--bg);color:var(--text);padding-bottom:0}
-#app-screen{display:none;height:100vh;height:100dvh;display:none;flex-direction:column;overflow:hidden}
-#app-screen.visible{display:flex}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;background:var(--bg);color:var(--text);padding-bottom:calc(58px + env(safe-area-inset-bottom))}
 
 /* AUTH */
 #auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;height:100dvh;padding:24px;overflow:hidden;background:linear-gradient(160deg,#0d2240 0%,#1a4a8a 45%,#c62828 100%);position:relative}
@@ -57,23 +55,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 
 /* HEADER */
 #app-screen{display:none}
-.header{background:linear-gradient(135deg,#1565C0,#1976D2);color:#fff;padding:0 16px;height:54px;min-height:54px;display:flex;align-items:center;justify-content:space-between;z-index:100;flex-shrink:0}
+.header{background:linear-gradient(135deg,#1565C0,#1976D2);color:#fff;padding:0 16px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .header-title{font-size:16px;font-weight:800;letter-spacing:.5px;display:flex;align-items:center;gap:8px}
 .avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#e53935,#c62828);border:2px solid rgba(255,255,255,.4);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;cursor:pointer}
 
 /* BOTTOM NAV */
-.bottom-nav{background:#0a1628;border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom);flex-shrink:0}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0a1628;border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px;cursor:pointer;border:none;background:none;color:var(--text3);font-size:9px;gap:2px;transition:.15s}
 .nav-item.active{color:var(--blue3)}
 .nav-icon{font-size:20px;line-height:1}
 
 /* CONTENT SLIDER */
-.content-wrapper{overflow:hidden;width:100%;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
-.content-slider{display:flex;transition:transform .3s cubic-bezier(.4,0,.2,1);will-change:transform;min-height:100%}
-.content{padding:12px;padding-bottom:16px;min-width:100vw;width:100vw}
+.content-wrapper{overflow:hidden;width:100%}
+.content-slider{display:flex;transition:transform .3s cubic-bezier(.4,0,.2,1);will-change:transform}
+.content{padding:12px;padding-bottom:8px;min-width:100vw;width:100vw}
 
 /* CARDS */
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:10px}
+.card:last-child{margin-bottom:0}
 .card-title{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
 
 /* GROUP TABS */
@@ -397,10 +396,10 @@ async function loadProfile(){
   }
 }
 async function logout(){appInitialized=false;await sb.auth.signOut();currentUser=null;currentProfile=null;closeMenu({target:document.getElementById('menu-overlay')});showAuth();}
-function showAuth(){document.getElementById('auth-screen').style.display='flex';const app=document.getElementById('app-screen');app.style.display='none';app.classList.remove('visible');}
+function showAuth(){document.getElementById('auth-screen').style.display='flex';document.getElementById('app-screen').style.display='none';}
 function showApp(){
   document.getElementById('auth-screen').style.display='none';
-  const app=document.getElementById('app-screen');app.style.display='flex';app.classList.add('visible');
+  document.getElementById('app-screen').style.display='block';
   const s=document.getElementById('content-slider');if(s)s.style.transform='translateX(0)';
   currentSectionIdx=0;document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===0));initSwipe();
 }
@@ -471,19 +470,21 @@ function setPredictTab(tab,btn){
 // CHAMPION
 function renderChampion(){
   const allTeams=Object.values(GROUPS).flat();
-  const myPick=champPicks.find(c=>c.user_id===currentUser?.id)?.team_name||'';
+  const myPick=champPicks.find(c=>c.user_id===currentUser?.id&&c.team_name)?.team_name||'';
   document.getElementById('champ-grid').innerHTML=allTeams.map(t=>`<button class="champ-btn${myPick===t?' selected':''}" onclick="setChampPick('${t}')"><span class="flag">${FLAGS[t]||'🏳'}</span><span class="name">${t}</span></button>`).join('');
-  const counts={};allTeams.forEach(t=>counts[t]=0);champPicks.forEach(c=>{if(c.team_name)counts[c.team_name]=(counts[c.team_name]||0)+1;});
-  const total=champPicks.length;const sorted=Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const counts={};allTeams.forEach(t=>counts[t]=0);
+  champPicks.filter(c=>c.team_name).forEach(c=>{counts[c.team_name]=(counts[c.team_name]||0)+1;});
+  const total=champPicks.filter(c=>c.team_name).length;
+  const sorted=Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   if(!sorted.length){document.getElementById('champ-summary').innerHTML='<div class="empty">まだ誰も予想していません</div>';return;}
-  document.getElementById('champ-summary').innerHTML=sorted.map(([t,c])=>{const pct=Math.round(c/total*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${FLAGS[t]||''} ${t}</div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
+  document.getElementById('champ-summary').innerHTML=sorted.map(([t,c])=>{const pct=Math.round(c/Math.max(total,1)*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${FLAGS[t]||''} ${t}</div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
 }
 async function setChampPick(team){
   if(!currentUser)return;
   const ex=champPicks.find(c=>c.user_id===currentUser.id);
-  // 同じチームをタップしたら解除
   if(ex?.team_name===team){
-    await sb.from('champion_picks').delete().eq('user_id',currentUser.id);
+    // 解除：team_nameを空にする
+    await sb.from('champion_picks').update({team_name:''}).eq('user_id',currentUser.id);
     await loadChampPicks();renderChampion();showToast('優勝予想を解除しました');return;
   }
   if(ex)await sb.from('champion_picks').update({team_name:team}).eq('user_id',currentUser.id);
@@ -563,19 +564,20 @@ async function setKoPick(round,matchId,winner){
 
 // SCORER
 function renderScorer(){
-  const myPick=scorerPicks.find(p=>p.user_id===currentUser?.id);
+  const myPick=scorerPicks.find(p=>p.user_id===currentUser?.id&&p.player_name);
   document.getElementById('scorer-grid').innerHTML=TOP_SCORERS.map(s=>`<button class="scorer-btn${myPick?.player_name===s.name?' selected':''}" onclick="setScorerPick('${s.name}','${s.team}')"><span class="s-flag">${s.flag}</span><span class="s-name">${s.name}</span><span class="s-team">${s.team}</span></button>`).join('');
-  const counts={};TOP_SCORERS.forEach(s=>counts[s.name]=0);scorerPicks.forEach(p=>{if(p.player_name)counts[p.player_name]=(counts[p.player_name]||0)+1;});
-  const total=scorerPicks.length;const sorted=Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const counts={};TOP_SCORERS.forEach(s=>counts[s.name]=0);
+  scorerPicks.filter(p=>p.player_name).forEach(p=>{counts[p.player_name]=(counts[p.player_name]||0)+1;});
+  const total=scorerPicks.filter(p=>p.player_name).length;
+  const sorted=Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   if(!sorted.length){document.getElementById('scorer-summary').innerHTML='<div class="empty">まだ誰も予想していません</div>';return;}
-  document.getElementById('scorer-summary').innerHTML=sorted.map(([name,c])=>{const s=TOP_SCORERS.find(x=>x.name===name);const pct=Math.round(c/total*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${s?.flag||''} ${name}</div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
+  document.getElementById('scorer-summary').innerHTML=sorted.map(([name,c])=>{const s=TOP_SCORERS.find(x=>x.name===name);const pct=Math.round(c/Math.max(total,1)*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${s?.flag||''} ${name}</div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
 }
 async function setScorerPick(player,team){
   if(!currentUser)return;
   const ex=scorerPicks.find(p=>p.user_id===currentUser.id);
-  // 同じ選手をタップしたら解除
   if(ex?.player_name===player){
-    await sb.from('top_scorer_picks').delete().eq('user_id',currentUser.id);
+    await sb.from('top_scorer_picks').update({player_name:'',team_name:''}).eq('user_id',currentUser.id);
     await loadScorerPicks();renderScorer();showToast('得点王予想を解除しました');return;
   }
   if(ex)await sb.from('top_scorer_picks').update({player_name:player,team_name:team}).eq('user_id',currentUser.id);
