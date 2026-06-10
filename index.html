@@ -18,6 +18,8 @@
   --blue:#1565C0;--blue2:#1976D2;--blue3:#42a5f5;
   --red:#e53935;--red2:#c62828;
   --green2:#2e7d32;--green3:#4caf50;--green4:#81c784;
+  --amber:#fb8c00;--amber2:#ffcc02;
+  --purple:#7c4dff;--purple2:#ce93d8;
   --text:#fff;--text2:rgba(255,255,255,.7);--text3:rgba(255,255,255,.4);
   --border:rgba(255,255,255,.1);--border2:rgba(255,255,255,.18);
   --radius:14px;--radius-sm:10px;
@@ -28,7 +30,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 
 /* AUTH */
 #auth-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;height:100dvh;padding:24px;overflow:hidden;background:linear-gradient(160deg,#0d2240 0%,#1a4a8a 45%,#c62828 100%);position:relative}
-.auth-stars{position:absolute;inset:0;pointer-events:none}
 .auth-star{position:absolute;background:#fff;border-radius:50%;opacity:.7}
 .auth-stripe{position:absolute;bottom:0;left:0;right:0;height:5px;display:flex}
 .auth-stripe div{flex:1}
@@ -57,9 +58,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 
 /* BOTTOM NAV */
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:#0a1628;border-top:1px solid var(--border);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
-.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;cursor:pointer;border:none;background:none;color:var(--text3);font-size:10px;gap:3px;transition:.15s}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px;cursor:pointer;border:none;background:none;color:var(--text3);font-size:9px;gap:2px;transition:.15s}
 .nav-item.active{color:var(--blue3)}
-.nav-icon{font-size:22px;line-height:1}
+.nav-icon{font-size:20px;line-height:1}
 
 /* CONTENT SLIDER */
 .content-wrapper{overflow:hidden;width:100%}
@@ -83,24 +84,49 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .team{flex:1;font-weight:600;color:var(--text)}
 .team.right{text-align:right}
 .score-badge{background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700;color:var(--text);flex-shrink:0;min-width:48px;text-align:center}
-.score-badge.live{background:rgba(229,57,53,.25);border-color:#e53935;color:#ff8a80}
 .score-badge.upcoming{background:transparent;border-color:var(--border);color:var(--text3);font-size:10px}
 .pred-row{display:flex;gap:5px}
 .pred-btn{flex:1;padding:7px 3px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.05);color:var(--text2);cursor:pointer;transition:.15s;text-align:center}
 .pred-btn:active{transform:scale(.96)}
 .pred-btn.sel-w{background:rgba(46,125,50,.5);border-color:var(--green3);color:var(--green4)}
-.pred-btn.sel-d{background:rgba(245,124,0,.3);border-color:#fb8c00;color:#ffcc02}
+.pred-btn.sel-d{background:rgba(245,124,0,.3);border-color:var(--amber);color:var(--amber2)}
 .pred-btn.sel-l{background:rgba(229,57,53,.35);border-color:var(--red);color:#ff8a80}
-.correct-mark{color:var(--green4);font-size:11px;margin-left:4px}
+.correct-mark{color:var(--green4);font-size:11px;margin-left:2px}
 
-/* CHAMP GRID */
+/* CHAMPION */
 .champ-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 .champ-btn{padding:10px 5px;border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(255,255,255,.04);cursor:pointer;text-align:center;transition:.15s;display:flex;flex-direction:column;align-items:center;gap:3px}
 .champ-btn:active{transform:scale(.95)}
 .champ-btn .flag{font-size:22px}
 .champ-btn .name{font-size:10px;font-weight:600;color:var(--text2);line-height:1.2}
-.champ-btn.selected{border-color:#7c4dff;background:rgba(124,77,255,.2)}
-.champ-btn.selected .name{color:#ce93d8}
+.champ-btn.selected{border-color:var(--purple);background:rgba(124,77,255,.2)}
+.champ-btn.selected .name{color:var(--purple2)}
+
+/* GROUP ADVANCE */
+.group-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px}
+.group-card-title{font-size:11px;font-weight:700;color:var(--blue3);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.team-pick-row{display:flex;gap:6px;flex-wrap:wrap}
+.team-pick-btn{flex:1;min-width:calc(50% - 3px);padding:7px 4px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.04);color:var(--text2);cursor:pointer;text-align:center;transition:.15s}
+.team-pick-btn.sel1{background:rgba(21,101,192,.4);border-color:var(--blue2);color:var(--blue3)}
+.team-pick-btn.sel2{background:rgba(46,125,50,.4);border-color:var(--green3);color:var(--green4)}
+
+/* KNOCKOUT */
+.ko-round-title{font-size:12px;font-weight:700;color:var(--amber2);margin:14px 0 8px;display:flex;align-items:center;gap:6px}
+.ko-match{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;margin-bottom:8px}
+.ko-pick-row{display:flex;gap:6px;margin-top:7px}
+.ko-btn{flex:1;padding:7px 4px;font-size:11px;font-weight:600;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.04);color:var(--text2);cursor:pointer;text-align:center;transition:.15s}
+.ko-btn.selected{background:rgba(245,124,0,.3);border-color:var(--amber);color:var(--amber2)}
+.ko-tbd{font-size:11px;color:var(--text3);padding:6px;text-align:center;border:1px dashed var(--border);border-radius:8px}
+
+/* SCORER */
+.scorer-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:4px}
+.scorer-btn{padding:10px 6px;border:1px solid var(--border);border-radius:var(--radius-sm);background:rgba(255,255,255,.04);cursor:pointer;text-align:center;transition:.15s;display:flex;flex-direction:column;align-items:center;gap:3px}
+.scorer-btn:active{transform:scale(.95)}
+.scorer-btn .s-flag{font-size:18px}
+.scorer-btn .s-name{font-size:11px;font-weight:700;color:var(--text)}
+.scorer-btn .s-team{font-size:10px;color:var(--text3)}
+.scorer-btn.selected{border-color:var(--amber);background:rgba(245,124,0,.2)}
+.scorer-btn.selected .s-name{color:var(--amber2)}
 
 /* ODDS */
 .odds-item{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
@@ -123,20 +149,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 /* BADGES */
 .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600}
 .badge-green{background:rgba(46,125,50,.3);color:var(--green4)}
-.badge-amber{background:rgba(245,124,0,.25);color:#ffcc02}
+.badge-amber{background:rgba(245,124,0,.25);color:var(--amber2)}
 .badge-red{background:rgba(229,57,53,.25);color:#ff8a80}
 .badge-blue{background:rgba(21,101,192,.3);color:var(--blue3)}
-.badge-admin{background:rgba(245,124,0,.25);color:#ffcc02;font-size:10px;padding:2px 6px;border-radius:4px}
+.badge-admin{background:rgba(245,124,0,.25);color:var(--amber2);font-size:10px;padding:2px 6px;border-radius:4px}
 
-/* RESULT INPUTS */
+/* RESULT */
 .result-btns{display:flex;gap:4px}
 .result-btn{flex:1;padding:6px;font-size:10px;font-weight:600;border:1px solid var(--border);border-radius:6px;background:rgba(255,255,255,.04);color:var(--text3);cursor:pointer;text-align:center;transition:.15s}
 .result-btn.sel-w{background:rgba(46,125,50,.4);border-color:var(--green3);color:var(--green4)}
-.result-btn.sel-d{background:rgba(245,124,0,.3);border-color:#fb8c00;color:#ffcc02}
+.result-btn.sel-d{background:rgba(245,124,0,.3);border-color:var(--amber);color:var(--amber2)}
 .result-btn.sel-l{background:rgba(229,57,53,.35);border-color:var(--red);color:#ff8a80}
-
-/* SCORE INPUT */
-.score-input-row{display:flex;align-items:center;gap:8px;margin-top:8px}
+.score-input-row{display:flex;align-items:center;gap:6px;margin-top:8px}
 .score-input{width:44px;height:36px;background:rgba(255,255,255,.1);border:1px solid var(--border2);border-radius:8px;color:#fff;font-size:16px;font-weight:700;text-align:center;outline:none}
 .score-dash{color:var(--text3);font-size:14px;font-weight:700}
 .score-save-btn{flex:1;height:36px;background:linear-gradient(135deg,#1976D2,#1565C0);border:none;border-radius:8px;color:#fff;font-size:12px;font-weight:700;cursor:pointer}
@@ -149,41 +173,34 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .stat-val{font-size:20px;font-weight:800;color:var(--text)}
 .stat-lab{font-size:10px;color:var(--text3);margin-top:2px}
 .empty{text-align:center;padding:32px 20px;color:var(--text3);font-size:14px}
-.admin-note{background:rgba(245,124,0,.15);border:1px solid rgba(245,124,0,.3);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:#ffcc02;margin-bottom:12px}
+.admin-note{background:rgba(245,124,0,.15);border:1px solid rgba(245,124,0,.3);border-radius:var(--radius-sm);padding:10px 12px;font-size:12px;color:var(--amber2);margin-bottom:12px}
 .section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
-
-/* MENU */
 .menu-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:200;display:none;align-items:flex-end}
 .menu-overlay.show{display:flex}
 .menu-sheet{background:#162640;border:1px solid var(--border);border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:600px;margin:0 auto}
 .menu-item{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;font-size:15px;color:var(--text)}
 .menu-item:last-child{border-bottom:none}
 .menu-item-icon{font-size:20px;width:32px;text-align:center}
-
-/* TOAST */
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(22,38,64,.95);border:1px solid var(--border2);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;opacity:0;transition:.25s;pointer-events:none;z-index:999;white-space:nowrap}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* LOADING */
 .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--text3);font-size:14px;gap:8px}
 .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--blue3);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.tab-scroll{display:flex;gap:5px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.tab-scroll::-webkit-scrollbar{display:none}
+.stab{flex-shrink:0;padding:6px 14px;font-size:12px;font-weight:700;border:1px solid var(--border);border-radius:20px;background:transparent;color:var(--text3);cursor:pointer;transition:.15s}
+.stab.active{background:linear-gradient(135deg,#e53935,#c62828);border-color:#e53935;color:#fff}
 </style>
 </head>
 <body>
 
-<!-- AUTH -->
 <div id="auth-screen">
-  <div class="auth-stars">
-    <div class="auth-star" style="width:2px;height:2px;top:7%;left:18%"></div>
-    <div class="auth-star" style="width:1px;height:1px;top:14%;left:72%"></div>
-    <div class="auth-star" style="width:2px;height:2px;top:22%;left:48%"></div>
-    <div class="auth-star" style="width:1px;height:1px;top:6%;left:88%"></div>
-    <div class="auth-star" style="width:2px;height:2px;top:32%;left:10%"></div>
-    <div class="auth-star" style="width:3px;height:3px;top:10%;left:35%;opacity:.4"></div>
-    <div class="auth-star" style="width:1px;height:1px;top:18%;left:60%"></div>
-    <div class="auth-star" style="width:2px;height:2px;top:40%;left:80%"></div>
-  </div>
+  <div class="auth-star" style="width:2px;height:2px;top:7%;left:18%"></div>
+  <div class="auth-star" style="width:1px;height:1px;top:14%;left:72%"></div>
+  <div class="auth-star" style="width:2px;height:2px;top:22%;left:48%"></div>
+  <div class="auth-star" style="width:1px;height:1px;top:6%;left:88%"></div>
+  <div class="auth-star" style="width:2px;height:2px;top:32%;left:10%"></div>
+  <div class="auth-star" style="width:3px;height:3px;top:10%;left:35%;opacity:.4"></div>
   <div class="auth-logo">⚽</div>
   <div class="auth-title">WC 2026</div>
   <div class="auth-sub">🏆定例会🏆 予想アプリ</div>
@@ -193,42 +210,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
       <button class="auth-tab" onclick="switchAuthTab('signup')">新規登録</button>
     </div>
     <div id="login-form">
-      <div class="form-group">
-        <label class="form-label">メールアドレス</label>
-        <input type="email" class="form-input" id="login-email" placeholder="example@email.com">
-      </div>
-      <div class="form-group">
-        <label class="form-label">パスワード</label>
-        <input type="password" class="form-input" id="login-pass" placeholder="••••••••">
-      </div>
+      <div class="form-group"><label class="form-label">メールアドレス</label><input type="email" class="form-input" id="login-email" placeholder="example@email.com"></div>
+      <div class="form-group"><label class="form-label">パスワード</label><input type="password" class="form-input" id="login-pass" placeholder="••••••••"></div>
       <button class="btn btn-primary" onclick="doLogin()">ログイン</button>
       <div class="auth-error" id="login-error"></div>
     </div>
     <div id="signup-form" style="display:none">
-      <div class="form-group">
-        <label class="form-label">表示名</label>
-        <input type="text" class="form-input" id="signup-name" placeholder="例：田中">
-      </div>
-      <div class="form-group">
-        <label class="form-label">メールアドレス</label>
-        <input type="email" class="form-input" id="signup-email" placeholder="example@email.com">
-      </div>
-      <div class="form-group">
-        <label class="form-label">パスワード（6文字以上）</label>
-        <input type="password" class="form-input" id="signup-pass" placeholder="••••••••">
-      </div>
+      <div class="form-group"><label class="form-label">表示名</label><input type="text" class="form-input" id="signup-name" placeholder="例：田中"></div>
+      <div class="form-group"><label class="form-label">メールアドレス</label><input type="email" class="form-input" id="signup-email" placeholder="example@email.com"></div>
+      <div class="form-group"><label class="form-label">パスワード（6文字以上）</label><input type="password" class="form-input" id="signup-pass" placeholder="••••••••"></div>
       <button class="btn btn-primary" onclick="doSignup()">登録する</button>
       <div class="auth-error" id="signup-error"></div>
     </div>
   </div>
-  <div class="auth-stripe">
-    <div style="background:#1565C0"></div>
-    <div style="background:#e53935"></div>
-    <div style="background:#2e7d32"></div>
-  </div>
+  <div class="auth-stripe"><div style="background:#1565C0"></div><div style="background:#e53935"></div><div style="background:#2e7d32"></div></div>
 </div>
 
-<!-- APP -->
 <div id="app-screen">
   <div class="header">
     <div class="header-title">⚽ WC2026 予想</div>
@@ -244,14 +241,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
         <div class="section-header">
           <div class="card-title" style="margin:0">グループステージ予想</div>
           <div style="display:flex;gap:6px">
-            <div class="stat-box" style="padding:5px 10px">
-              <div class="stat-val" id="pred-done" style="font-size:16px">0</div>
-              <div class="stat-lab">予想済</div>
-            </div>
-            <div class="stat-box" style="padding:5px 10px">
-              <div class="stat-val" style="font-size:16px">72</div>
-              <div class="stat-lab">総試合</div>
-            </div>
+            <div class="stat-box" style="padding:5px 10px"><div class="stat-val" id="pred-done" style="font-size:16px">0</div><div class="stat-lab">予想済</div></div>
+            <div class="stat-box" style="padding:5px 10px"><div class="stat-val" style="font-size:16px">72</div><div class="stat-lab">総試合</div></div>
           </div>
         </div>
       </div>
@@ -261,42 +252,49 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
       </div>
     </div>
 
-    <!-- 優勝予想 -->
-    <div class="content" id="sec-champion">
-      <div class="card">
-        <div class="card-title">あなたの優勝予想</div>
-        <div class="champ-grid" id="champ-grid"></div>
+    <!-- 予想メニュー -->
+    <div class="content" id="sec-predict">
+      <div class="tab-scroll" id="predict-tabs">
+        <button class="stab active" onclick="setPredictTab('champion',this)">🏆 優勝</button>
+        <button class="stab" onclick="setPredictTab('group',this)">📋 突破</button>
+        <button class="stab" onclick="setPredictTab('knockout',this)">⚡ KO</button>
+        <button class="stab" onclick="setPredictTab('scorer',this)">⚽ 得点王</button>
       </div>
-      <div class="card">
-        <div class="card-title">みんなの優勝予想</div>
-        <div id="champ-summary"><div class="loading"><div class="spinner"></div></div></div>
+      <div id="predict-champion">
+        <div class="card"><div class="card-title">あなたの優勝予想</div><div class="champ-grid" id="champ-grid"></div></div>
+        <div class="card"><div class="card-title">みんなの優勝予想</div><div id="champ-summary"></div></div>
+      </div>
+      <div id="predict-group" style="display:none">
+        <div class="card" style="margin-bottom:6px"><div style="font-size:12px;color:var(--text2)">各グループから突破する2チームを選んでください</div></div>
+        <div id="group-advance-list"></div>
+      </div>
+      <div id="predict-knockout" style="display:none">
+        <div class="card" style="margin-bottom:6px"><div style="font-size:12px;color:var(--text2)">グループ突破チーム予想後に解放されます。各試合の勝者を予想してください。</div></div>
+        <div id="knockout-list"></div>
+      </div>
+      <div id="predict-scorer" style="display:none">
+        <div class="card"><div class="card-title">得点王を予想する</div><div class="scorer-grid" id="scorer-grid"></div></div>
+        <div class="card"><div class="card-title">みんなの得点王予想</div><div id="scorer-summary"></div></div>
       </div>
     </div>
 
     <!-- オッズ -->
     <div class="content" id="sec-odds">
-      <div class="card">
-        <div class="card-title">優勝オッズ（予想ベース）</div>
-        <div id="odds-list"><div class="loading"><div class="spinner"></div></div></div>
-      </div>
-      <div class="card">
-        <div class="card-title">試合別 予想割合</div>
-        <div class="group-scroll" id="odds-group-tabs"></div>
-        <div id="odds-matches"></div>
-      </div>
+      <div class="card"><div class="card-title">優勝オッズ（予想ベース）</div><div id="odds-list"><div class="loading"><div class="spinner"></div></div></div></div>
+      <div class="card"><div class="card-title">試合別 予想割合</div><div class="group-scroll" id="odds-group-tabs"></div><div id="odds-matches"></div></div>
     </div>
 
     <!-- ランキング -->
     <div class="content" id="sec-ranking">
       <div class="card">
         <div class="card-title">仲間内ランキング</div>
-        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">正解+3pt｜優勝予想正解+10pt</div>
+        <div style="font-size:11px;color:var(--text3);margin-bottom:10px">GS正解+3pt｜KO正解+5pt｜突破正解+2pt｜優勝/得点王正解+10pt</div>
         <div id="ranking-list"><div class="loading"><div class="spinner"></div></div></div>
       </div>
       <div id="admin-result-section" style="display:none">
         <div class="card">
           <div class="card-title">試合結果入力 <span class="badge-admin">管理者</span></div>
-          <div class="admin-note">スコアを入力してください。再タップで解除できます。</div>
+          <div class="admin-note">スコアを入力→保存で勝敗自動判定。再タップで解除。</div>
           <div class="group-scroll" id="result-group-tabs"></div>
           <div id="result-match-list"></div>
         </div>
@@ -307,88 +305,82 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
   </div>
 
   <nav class="bottom-nav">
-    <button class="nav-item active" onclick="showSection('schedule',this)">
-      <span class="nav-icon">📅</span><span>日程</span>
-    </button>
-    <button class="nav-item" onclick="showSection('champion',this)">
-      <span class="nav-icon">🏆</span><span>優勝</span>
-    </button>
-    <button class="nav-item" onclick="showSection('odds',this)">
-      <span class="nav-icon">📊</span><span>オッズ</span>
-    </button>
-    <button class="nav-item" onclick="showSection('ranking',this)">
-      <span class="nav-icon">🥇</span><span>順位</span>
-    </button>
+    <button class="nav-item active" onclick="showSection('schedule',this)"><span class="nav-icon">📅</span><span>日程</span></button>
+    <button class="nav-item" onclick="showSection('predict',this)"><span class="nav-icon">🎯</span><span>予想</span></button>
+    <button class="nav-item" onclick="showSection('odds',this)"><span class="nav-icon">📊</span><span>オッズ</span></button>
+    <button class="nav-item" onclick="showSection('ranking',this)"><span class="nav-icon">🥇</span><span>順位</span></button>
   </nav>
 </div>
 
-<!-- MENU -->
 <div class="menu-overlay" id="menu-overlay" onclick="closeMenu(event)">
   <div class="menu-sheet">
     <div style="text-align:center;margin-bottom:16px">
       <div style="font-size:18px;font-weight:700" id="menu-name">-</div>
       <div style="font-size:13px;color:var(--text3)" id="menu-email">-</div>
     </div>
-    <div class="menu-item" onclick="logout()">
-      <span class="menu-item-icon">🚪</span>ログアウト
-    </div>
+    <div class="menu-item" onclick="logout()"><span class="menu-item-icon">🚪</span>ログアウト</div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
 
 <script>
-const SUPABASE_URL='https://yykvtsfogdrbeutgxzaf.supabase.co';
-const SUPABASE_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5a3Z0c2ZvZ2RyYmV1dGd4emFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDY4NDYsImV4cCI6MjA5NjYyMjg0Nn0.2W5-b94MQeIVb6ofObSz-TddP3sSSg_IPszjuQsQiP0';
-const sb=supabase.createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,storageKey:'wc2026-auth',storage:window.localStorage,autoRefreshToken:true,detectSessionInUrl:false}});
+const SB_URL='https://yykvtsfogdrbeutgxzaf.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5a3Z0c2ZvZ2RyYmV1dGd4emFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwNDY4NDYsImV4cCI6MjA5NjYyMjg0Nn0.2W5-b94MQeIVb6ofObSz-TddP3sSSg_IPszjuQsQiP0';
+const sb=supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:true,storageKey:'wc2026-auth',storage:window.localStorage,autoRefreshToken:true,detectSessionInUrl:false}});
 
 const GROUPS={A:['Mexico','South Africa','South Korea','Czech Republic'],B:['Canada','Bosnia-Herz.','Qatar','Switzerland'],C:['Brazil','Haiti','Morocco','Scotland'],D:['Australia','Paraguay','Türkiye','USA'],E:['Curaçao','Ecuador','Germany','Ivory Coast'],F:['Japan','Netherlands','Sweden','Tunisia'],G:['Belgium','Egypt','Iran','New Zealand'],H:['Cabo Verde','Saudi Arabia','Spain','Uruguay'],I:['France','Iraq','Norway','Senegal'],J:['Algeria','Argentina','Austria','Jordan'],K:['Colombia','DR Congo','Portugal','Uzbekistan'],L:['Croatia','England','Ghana','Panama']};
 const FLAGS={Mexico:'🇲🇽','South Africa':'🇿🇦','South Korea':'🇰🇷','Czech Republic':'🇨🇿',Canada:'🇨🇦','Bosnia-Herz.':'🇧🇦',Qatar:'🇶🇦',Switzerland:'🇨🇭',Brazil:'🇧🇷',Haiti:'🇭🇹',Morocco:'🇲🇦',Scotland:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',Australia:'🇦🇺',Paraguay:'🇵🇾','Türkiye':'🇹🇷',USA:'🇺🇸','Curaçao':'🇨🇼',Ecuador:'🇪🇨',Germany:'🇩🇪','Ivory Coast':'🇨🇮',Japan:'🇯🇵',Netherlands:'🇳🇱',Sweden:'🇸🇪',Tunisia:'🇹🇳',Belgium:'🇧🇪',Egypt:'🇪🇬',Iran:'🇮🇷','New Zealand':'🇳🇿','Cabo Verde':'🇨🇻','Saudi Arabia':'🇸🇦',Spain:'🇪🇸',Uruguay:'🇺🇾',France:'🇫🇷',Iraq:'🇮🇶',Norway:'🇳🇴',Senegal:'🇸🇳',Algeria:'🇩🇿',Argentina:'🇦🇷',Austria:'🇦🇹',Jordan:'🇯🇴',Colombia:'🇨🇴','DR Congo':'🇨🇩',Portugal:'🇵🇹',Uzbekistan:'🇺🇿',Croatia:'🇭🇷',England:'🏴󠁧󠁢󠁥󠁮󠁧󠁿',Ghana:'🇬🇭',Panama:'🇵🇦'};
 const AVATARS=['#1976D2','#e53935','#7c4dff','#fb8c00','#00897b','#d81b60'];
 const BASE_ODDS={Argentina:3.5,France:4.0,Spain:3.8,England:5.0,Brazil:4.5,Germany:6.0,Portugal:7.0,Netherlands:8.0,Belgium:10.0,Uruguay:12.0,Japan:20.0,'South Korea':25.0,'Ivory Coast':30.0,Colombia:18.0,Morocco:22.0,Croatia:25.0,Mexico:20.0,Norway:35.0,Australia:50.0,Ecuador:40.0,Sweden:45.0,USA:30.0,'Saudi Arabia':60.0,Senegal:40.0,Switzerland:15.0,'Czech Republic':35.0,Austria:40.0,Tunisia:80.0,Ghana:70.0,'Cabo Verde':150.0,'DR Congo':100.0,Algeria:50.0,'New Zealand':200.0,Iraq:200.0,Jordan:150.0,Haiti:300.0,Uzbekistan:200.0,'Curaçao':300.0,Canada:35.0,'Bosnia-Herz.':60.0,Qatar:120.0,'South Africa':100.0,Scotland:60.0,Paraguay:70.0,'Türkiye':45.0,Egypt:80.0,Iran:100.0,Panama:200.0};
+const TOP_SCORERS=[
+  {name:'Lionel Messi',team:'Argentina',flag:'🇦🇷'},{name:'Kylian Mbappé',team:'France',flag:'🇫🇷'},
+  {name:'Erling Haaland',team:'Norway',flag:'🇳🇴'},{name:'Vinicius Jr.',team:'Brazil',flag:'🇧🇷'},
+  {name:'Lamine Yamal',team:'Spain',flag:'🇪🇸'},{name:'Harry Kane',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
+  {name:'Bukayo Saka',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'Pedri',team:'Spain',flag:'🇪🇸'},
+  {name:'Florian Wirtz',team:'Germany',flag:'🇩🇪'},{name:'Santiago Giménez',team:'Mexico',flag:'🇲🇽'},
+  {name:'Darwin Núñez',team:'Uruguay',flag:'🇺🇾'},{name:'Rafael Leão',team:'Portugal',flag:'🇵🇹'},
+  {name:'Alejandro Garnacho',team:'Argentina',flag:'🇦🇷'},{name:'Takefusa Kubo',team:'Japan',flag:'🇯🇵'},
+  {name:'Breel Embolo',team:'Switzerland',flag:'🇨🇭'},{name:'Memphis Depay',team:'Netherlands',flag:'🇳🇱'},
+];
+const KO_ROUNDS=[
+  {id:'r32',label:'ラウンド32',matches:16},{id:'r16',label:'ラウンド16',matches:8},
+  {id:'qf',label:'準々決勝',matches:4},{id:'sf',label:'準決勝',matches:2},{id:'f',label:'決勝',matches:1}
+];
 
 function genMatches(){const m=[];Object.entries(GROUPS).forEach(([g,ts])=>{for(let i=0;i<ts.length;i++)for(let j=i+1;j<ts.length;j++)m.push({id:`${g}${i}${j}`,group:g,home:ts[i],away:ts[j]});});return m;}
 const ALL_MATCHES=genMatches();
 
-let currentUser=null,currentProfile=null,myPredictions={},allPredictions=[],allProfiles=[],allResults={},champPicks=[],scheduleGroup='A',oddsGroup='A',resultGroup='A';
-let appInitialized=false;
+let currentUser=null,currentProfile=null,appInitialized=false;
+let myPredictions={},allPredictions=[],allProfiles=[],allResults={},champPicks=[],scorerPicks=[],groupAdvancePicks=[],knockoutPicks=[];
+let scheduleGroup='A',oddsGroup='A',resultGroup='A',currentPredictTab='champion';
 
 // AUTH
 sb.auth.getSession().then(async({data:{session}})=>{
   if(session&&!appInitialized){appInitialized=true;currentUser=session.user;try{await loadProfile();}catch(e){}showApp();try{await loadAll();}catch(e){}}
-  else if(!session){showAuth();}
+  else if(!session)showAuth();
 });
-
 function switchAuthTab(tab){
   document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',i===(tab==='login'?0:1)));
   document.getElementById('login-form').style.display=tab==='login'?'':'none';
   document.getElementById('signup-form').style.display=tab==='signup'?'':'none';
 }
-
 async function doLogin(){
-  const email=document.getElementById('login-email').value.trim();
-  const pass=document.getElementById('login-pass').value;
+  const email=document.getElementById('login-email').value.trim(),pass=document.getElementById('login-pass').value;
   const btn=event.target;btn.textContent='...';btn.disabled=true;
   const{data,error}=await sb.auth.signInWithPassword({email,password:pass});
   btn.textContent='ログイン';btn.disabled=false;
   if(error){document.getElementById('login-error').textContent='メールアドレスまたはパスワードが正しくありません';return;}
   appInitialized=true;currentUser=data.session.user;
-  try{await loadProfile();}catch(e){console.error(e);}
-  showApp();
-  try{await loadAll();}catch(e){console.error(e);}
+  try{await loadProfile();}catch(e){}showApp();try{await loadAll();}catch(e){}
 }
-
 async function doSignup(){
-  const name=document.getElementById('signup-name').value.trim();
-  const email=document.getElementById('signup-email').value.trim();
-  const pass=document.getElementById('signup-pass').value;
+  const name=document.getElementById('signup-name').value.trim(),email=document.getElementById('signup-email').value.trim(),pass=document.getElementById('signup-pass').value;
   if(!name){document.getElementById('signup-error').textContent='表示名を入力してください';return;}
-  if(pass.length<6){document.getElementById('signup-error').textContent='パスワードは6文字以上にしてください';return;}
+  if(pass.length<6){document.getElementById('signup-error').textContent='パスワードは6文字以上';return;}
   const{error}=await sb.auth.signUp({email,password:pass,options:{data:{display_name:name}}});
   if(error)document.getElementById('signup-error').textContent=error.message;
-  else showToast('確認メールを送信しました');
+  else showToast('登録完了！ログインしてください');
 }
-
 async function loadProfile(){
   const{data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
   currentProfile=data;
@@ -399,103 +391,69 @@ async function loadProfile(){
     if(data.is_admin)document.getElementById('admin-result-section').style.display='block';
   }
 }
-
-async function logout(){
-  appInitialized=false;await sb.auth.signOut();currentUser=null;currentProfile=null;
-  closeMenu({target:document.getElementById('menu-overlay')});showAuth();
-}
-
+async function logout(){appInitialized=false;await sb.auth.signOut();currentUser=null;currentProfile=null;closeMenu({target:document.getElementById('menu-overlay')});showAuth();}
 function showAuth(){document.getElementById('auth-screen').style.display='flex';document.getElementById('app-screen').style.display='none';}
 function showApp(){
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('app-screen').style.display='block';
-  const slider=document.getElementById('content-slider');
-  if(slider)slider.style.transform='translateX(0)';
-  currentSectionIdx=0;
-  document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===0));
-  initSwipe();
+  document.getElementById('auth-screen').style.display='none';document.getElementById('app-screen').style.display='block';
+  const s=document.getElementById('content-slider');if(s)s.style.transform='translateX(0)';
+  currentSectionIdx=0;document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===0));initSwipe();
 }
 
 // DATA
 async function loadAll(){
-  await Promise.all([loadMyPredictions(),loadAllProfiles(),loadAllPredictions(),loadResults(),loadChampPicks()]);
+  await Promise.all([loadMyPredictions(),loadAllProfiles(),loadAllPredictions(),loadResults(),loadChampPicks(),loadScorerPicks(),loadGroupAdvancePicks(),loadKnockoutPicks()]);
   renderScheduleGroupTabs();renderMatchList();renderOdds();renderRanking();
 }
 async function loadMyPredictions(){if(!currentUser)return;const{data}=await sb.from('predictions').select('match_id,result').eq('user_id',currentUser.id);myPredictions={};(data||[]).forEach(p=>myPredictions[p.match_id]=p.result);updatePredCount();}
 async function loadAllProfiles(){const{data}=await sb.from('profiles').select('*');allProfiles=data||[];}
 async function loadAllPredictions(){const{data}=await sb.from('predictions').select('*');allPredictions=data||[];}
-async function loadResults(){
-  const{data}=await sb.from('match_results').select('*');
-  allResults={};
-  (data||[]).forEach(r=>{allResults[r.match_id]={result:r.result,home_score:r.home_score,away_score:r.away_score};});
-}
+async function loadResults(){const{data}=await sb.from('match_results').select('*');allResults={};(data||[]).forEach(r=>{allResults[r.match_id]={result:r.result,home_score:r.home_score,away_score:r.away_score};});}
 async function loadChampPicks(){const{data}=await sb.from('champion_picks').select('*');champPicks=data||[];}
+async function loadScorerPicks(){const{data}=await sb.from('top_scorer_picks').select('*');scorerPicks=data||[];}
+async function loadGroupAdvancePicks(){const{data}=await sb.from('group_advance_picks').select('*');groupAdvancePicks=data||[];}
+async function loadKnockoutPicks(){const{data}=await sb.from('knockout_picks').select('*');knockoutPicks=data||[];}
 function updatePredCount(){document.getElementById('pred-done').textContent=Object.values(myPredictions).filter(v=>v).length;}
 
 // SCHEDULE
-function renderScheduleGroupTabs(){
-  document.getElementById('schedule-group-tabs').innerHTML=Object.keys(GROUPS).map(g=>`<button class="gtab${g===scheduleGroup?' active':''}" onclick="setScheduleGroup('${g}')">${g}</button>`).join('');
-}
+function renderScheduleGroupTabs(){document.getElementById('schedule-group-tabs').innerHTML=Object.keys(GROUPS).map(g=>`<button class="gtab${g===scheduleGroup?' active':''}" onclick="setScheduleGroup('${g}')">${g}</button>`).join('');}
 function setScheduleGroup(g){scheduleGroup=g;renderScheduleGroupTabs();renderMatchList();}
-
 function initGroupSwipe(){
-  const el=document.getElementById('match-list');
-  if(!el||el._swipeInit)return;el._swipeInit=true;
+  const el=document.getElementById('match-list');if(!el||el._si)return;el._si=true;
   const gk=Object.keys(GROUPS);let sx=0,sy=0;
   el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
-  el.addEventListener('touchend',e=>{
-    const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
-    if(Math.abs(dx)<Math.abs(dy)||Math.abs(dx)<50)return;
-    const idx=gk.indexOf(scheduleGroup);
-    if(dx<0&&idx<gk.length-1)setScheduleGroup(gk[idx+1]);
-    else if(dx>0&&idx>0)setScheduleGroup(gk[idx-1]);
-  },{passive:true});
+  el.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)<Math.abs(dy)||Math.abs(dx)<50)return;const idx=gk.indexOf(scheduleGroup);if(dx<0&&idx<gk.length-1)setScheduleGroup(gk[idx+1]);else if(dx>0&&idx>0)setScheduleGroup(gk[idx-1]);},{passive:true});
 }
-
 function renderMatchList(){
   const matches=ALL_MATCHES.filter(m=>m.group===scheduleGroup);
   document.getElementById('match-list').innerHTML=matches.map(m=>{
-    const p=myPredictions[m.id]||'';
-    const rData=allResults[m.id];
-    const res=rData?.result||'';
-    const hs=rData?.home_score;const as=rData?.away_score;
-    const correct=res&&p===res;
-    const hf=FLAGS[m.home]||'';const af=FLAGS[m.away]||'';
-    let scoreBadge='';
-    if(hs!=null&&as!=null){
-      scoreBadge=`<span class="score-badge">${hs} - ${as}</span>`;
-    } else {
-      scoreBadge=`<span class="score-badge upcoming">試合前</span>`;
-    }
-    return `<div class="match-row">
-      <div class="match-header">
-        <span class="team right">${hf} ${m.home}</span>
-        ${scoreBadge}
-        <span class="team">${af} ${m.away}</span>
-        ${correct?`<span class="correct-mark">✓</span>`:''}
-      </div>
-      <div class="pred-row">
-        <button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W')">${hf} ${m.home}</button>
-        <button class="pred-btn${p==='D'?' sel-d':''}" onclick="setPred('${m.id}','D')">🤝 引き分け</button>
-        <button class="pred-btn${p==='L'?' sel-l':''}" onclick="setPred('${m.id}','L')">${af} ${m.away}</button>
-      </div>
-    </div>`;
+    const p=myPredictions[m.id]||'',rData=allResults[m.id],res=rData?.result||'',hs=rData?.home_score,as=rData?.away_score,correct=res&&p===res;
+    const hf=FLAGS[m.home]||'',af=FLAGS[m.away]||'';
+    const sb2=hs!=null&&as!=null?`<span class="score-badge">${hs} - ${as}</span>`:`<span class="score-badge upcoming">試合前</span>`;
+    return`<div class="match-row"><div class="match-header"><span class="team right">${hf} ${m.home}</span>${sb2}<span class="team">${af} ${m.away}</span>${correct?`<span class="correct-mark">✓</span>`:''}</div><div class="pred-row"><button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W')">${hf} ${m.home}</button><button class="pred-btn${p==='D'?' sel-d':''}" onclick="setPred('${m.id}','D')">🤝 引き分け</button><button class="pred-btn${p==='L'?' sel-l':''}" onclick="setPred('${m.id}','L')">${af} ${m.away}</button></div></div>`;
   }).join('');
   initGroupSwipe();
 }
-
 async function setPred(matchId,result){
-  if(!currentUser)return;
-  const prev=myPredictions[matchId];
-  if(prev===result){
-    delete myPredictions[matchId];renderMatchList();updatePredCount();
-    await sb.from('predictions').delete().match({user_id:currentUser.id,match_id:matchId});
-    await loadAllPredictions();showToast('予想を解除しました');return;
-  }
+  if(!currentUser)return;const prev=myPredictions[matchId];
+  if(prev===result){delete myPredictions[matchId];renderMatchList();updatePredCount();await sb.from('predictions').delete().match({user_id:currentUser.id,match_id:matchId});await loadAllPredictions();showToast('予想を解除しました');return;}
   myPredictions[matchId]=result;renderMatchList();updatePredCount();
-  if(prev){await sb.from('predictions').update({result}).match({user_id:currentUser.id,match_id:matchId});}
-  else{await sb.from('predictions').insert({user_id:currentUser.id,match_id:matchId,result});}
+  if(prev)await sb.from('predictions').update({result}).match({user_id:currentUser.id,match_id:matchId});
+  else await sb.from('predictions').insert({user_id:currentUser.id,match_id:matchId,result});
   await loadAllPredictions();showToast('予想を保存しました ✓');
+}
+
+// PREDICT TABS
+function setPredictTab(tab,btn){
+  currentPredictTab=tab;
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  ['champion','group','knockout','scorer'].forEach(t=>{
+    document.getElementById(`predict-${t}`).style.display=t===tab?'':'none';
+  });
+  if(tab==='champion')renderChampion();
+  if(tab==='group')renderGroupAdvance();
+  if(tab==='knockout')renderKnockout();
+  if(tab==='scorer')renderScorer();
 }
 
 // CHAMPION
@@ -503,23 +461,102 @@ function renderChampion(){
   const allTeams=Object.values(GROUPS).flat();
   const myPick=champPicks.find(c=>c.user_id===currentUser?.id)?.team_name||'';
   document.getElementById('champ-grid').innerHTML=allTeams.map(t=>`<button class="champ-btn${myPick===t?' selected':''}" onclick="setChampPick('${t}')"><span class="flag">${FLAGS[t]||'🏳'}</span><span class="name">${t}</span></button>`).join('');
-  const counts={};allTeams.forEach(t=>counts[t]=0);
-  champPicks.forEach(c=>{if(c.team_name)counts[c.team_name]=(counts[c.team_name]||0)+1;});
-  const total=champPicks.length;
-  const sorted=Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
-  if(sorted.length===0){document.getElementById('champ-summary').innerHTML='<div class="empty">まだ誰も予想していません</div>';return;}
-  document.getElementById('champ-summary').innerHTML=sorted.map(([t,c])=>{
-    const pct=Math.round(c/total*100);
-    return `<div class="odds-item"><div style="flex:1"><div class="odds-team">${FLAGS[t]||''} ${t}</div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;
-  }).join('');
+  const counts={};allTeams.forEach(t=>counts[t]=0);champPicks.forEach(c=>{if(c.team_name)counts[c.team_name]=(counts[c.team_name]||0)+1;});
+  const total=champPicks.length;const sorted=Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  if(!sorted.length){document.getElementById('champ-summary').innerHTML='<div class="empty">まだ誰も予想していません</div>';return;}
+  document.getElementById('champ-summary').innerHTML=sorted.map(([t,c])=>{const pct=Math.round(c/total*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${FLAGS[t]||''} ${t}</div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
+}
+async function setChampPick(team){
+  if(!currentUser)return;const ex=champPicks.find(c=>c.user_id===currentUser.id);
+  if(ex)await sb.from('champion_picks').update({team_name:team}).eq('user_id',currentUser.id);
+  else await sb.from('champion_picks').insert({user_id:currentUser.id,team_name:team});
+  await loadChampPicks();renderChampion();showToast(`${FLAGS[team]||''} ${team} を優勝予想に設定しました`);
 }
 
-async function setChampPick(team){
+// GROUP ADVANCE
+function renderGroupAdvance(){
+  const myPicks=groupAdvancePicks.filter(p=>p.user_id===currentUser?.id);
+  document.getElementById('group-advance-list').innerHTML=Object.entries(GROUPS).map(([g,teams])=>{
+    const pick=myPicks.find(p=>p.group_name===g);
+    const t1=pick?.team1||'',t2=pick?.team2||'';
+    return`<div class="group-card"><div class="group-card-title"><span style="background:var(--blue2);color:#fff;padding:2px 8px;border-radius:4px;font-size:11px">G${g}</span> 突破2チームを選択</div><div class="team-pick-row">${teams.map(t=>`<button class="team-pick-btn${t===t1?' sel1':t===t2?' sel2':''}" onclick="toggleGroupPick('${g}','${t}')">${FLAGS[t]||''} ${t}</button>`).join('')}</div></div>`;
+  }).join('');
+}
+async function toggleGroupPick(group,team){
   if(!currentUser)return;
-  const existing=champPicks.find(c=>c.user_id===currentUser.id);
-  if(existing){await sb.from('champion_picks').update({team_name:team}).eq('user_id',currentUser.id);}
-  else{await sb.from('champion_picks').insert({user_id:currentUser.id,team_name:team});}
-  await loadChampPicks();renderChampion();showToast(`${FLAGS[team]||''} ${team} を優勝予想に設定しました`);
+  const myPick=groupAdvancePicks.find(p=>p.user_id===currentUser.id&&p.group_name===group);
+  let t1=myPick?.team1||'',t2=myPick?.team2||'';
+  if(t1===team){t1=t2;t2='';}
+  else if(t2===team){t2='';}
+  else if(!t1){t1=team;}
+  else if(!t2){t2=team;}
+  else{t1=t2;t2=team;}
+  if(t1||t2){
+    if(myPick)await sb.from('group_advance_picks').update({team1:t1,team2:t2}).match({user_id:currentUser.id,group_name:group});
+    else await sb.from('group_advance_picks').insert({user_id:currentUser.id,group_name:group,team1:t1,team2:t2});
+  } else if(myPick){await sb.from('group_advance_picks').delete().match({user_id:currentUser.id,group_name:group});}
+  await loadGroupAdvancePicks();renderGroupAdvance();
+  const done=groupAdvancePicks.filter(p=>p.user_id===currentUser.id&&p.team1&&p.team2).length;
+  showToast(`G${group} 更新 (${done}/12グループ完了)`);
+}
+
+// KNOCKOUT
+function renderKnockout(){
+  const myPicks=knockoutPicks.filter(p=>p.user_id===currentUser?.id);
+  const myAdvance=groupAdvancePicks.filter(p=>p.user_id===currentUser?.id);
+  const advanceCount=myAdvance.filter(p=>p.team1&&p.team2).length;
+  if(advanceCount<12){
+    document.getElementById('knockout-list').innerHTML=`<div class="card"><div style="text-align:center;padding:20px;color:var(--text3)"><div style="font-size:32px;margin-bottom:8px">🔒</div><div style="font-size:13px">グループ突破予想を全グループ完了させると解放されます</div><div style="font-size:12px;color:var(--blue3);margin-top:8px">${advanceCount}/12 完了</div></div></div>`;
+    return;
+  }
+  const allAdvanced=[];Object.keys(GROUPS).forEach(g=>{
+    const p=myAdvance.find(x=>x.group_name===g);
+    if(p){allAdvanced.push({team:p.team1,group:g,pos:1});allAdvanced.push({team:p.team2,group:g,pos:2});}
+  });
+  let html='';
+  KO_ROUNDS.forEach(round=>{
+    html+=`<div class="ko-round-title">⚡ ${round.label}</div>`;
+    for(let i=0;i<round.matches;i++){
+      const mid=`${round.id}_${i}`;
+      const pick=myPicks.find(p=>p.round===round.id&&p.match_id===mid);
+      let teamA='?',teamB='?';
+      if(round.id==='r32'){
+        teamA=allAdvanced[i*2]?.team||'?';teamB=allAdvanced[i*2+1]?.team||'?';
+      }
+      const fa=FLAGS[teamA]||'';const fb=FLAGS[teamB]||'';
+      if(teamA==='?'||teamB==='?'){
+        html+=`<div class="ko-match"><div style="font-size:12px;color:var(--text3)">試合 ${i+1}</div><div class="ko-tbd">前ラウンドの結果待ち</div></div>`;
+      } else {
+        html+=`<div class="ko-match"><div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">${fa} ${teamA} vs ${fb} ${teamB}</div><div class="ko-pick-row"><button class="ko-btn${pick?.winner===teamA?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamA}')">${fa} ${teamA}</button><button class="ko-btn${pick?.winner===teamB?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamB}')">${fb} ${teamB}</button></div></div>`;
+      }
+    }
+  });
+  document.getElementById('knockout-list').innerHTML=html;
+}
+async function setKoPick(round,matchId,winner){
+  if(!currentUser)return;
+  const ex=knockoutPicks.find(p=>p.user_id===currentUser.id&&p.round===round&&p.match_id===matchId);
+  if(ex){
+    if(ex.winner===winner){await sb.from('knockout_picks').delete().match({user_id:currentUser.id,round,match_id:matchId});await loadKnockoutPicks();renderKnockout();showToast('予想を解除しました');return;}
+    await sb.from('knockout_picks').update({winner}).match({user_id:currentUser.id,round,match_id:matchId});
+  } else await sb.from('knockout_picks').insert({user_id:currentUser.id,round,match_id:matchId,winner});
+  await loadKnockoutPicks();renderKnockout();showToast(`${FLAGS[winner]||''} ${winner} を予想しました`);
+}
+
+// SCORER
+function renderScorer(){
+  const myPick=scorerPicks.find(p=>p.user_id===currentUser?.id);
+  document.getElementById('scorer-grid').innerHTML=TOP_SCORERS.map(s=>`<button class="scorer-btn${myPick?.player_name===s.name?' selected':''}" onclick="setScorerPick('${s.name}','${s.team}')"><span class="s-flag">${s.flag}</span><span class="s-name">${s.name}</span><span class="s-team">${s.team}</span></button>`).join('');
+  const counts={};TOP_SCORERS.forEach(s=>counts[s.name]=0);scorerPicks.forEach(p=>{if(p.player_name)counts[p.player_name]=(counts[p.player_name]||0)+1;});
+  const total=scorerPicks.length;const sorted=Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  if(!sorted.length){document.getElementById('scorer-summary').innerHTML='<div class="empty">まだ誰も予想していません</div>';return;}
+  document.getElementById('scorer-summary').innerHTML=sorted.map(([name,c])=>{const s=TOP_SCORERS.find(x=>x.name===name);const pct=Math.round(c/total*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${s?.flag||''} ${name}</div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
+}
+async function setScorerPick(player,team){
+  if(!currentUser)return;const ex=scorerPicks.find(p=>p.user_id===currentUser.id);
+  if(ex)await sb.from('top_scorer_picks').update({player_name:player,team_name:team}).eq('user_id',currentUser.id);
+  else await sb.from('top_scorer_picks').insert({user_id:currentUser.id,player_name:player,team_name:team});
+  await loadScorerPicks();renderScorer();showToast(`${player} を得点王予想に設定しました`);
 }
 
 // ODDS
@@ -535,21 +572,12 @@ function renderOddsGroupTabs(){document.getElementById('odds-group-tabs').innerH
 function setOddsGroup(g){oddsGroup=g;renderOddsGroupTabs();renderOddsMatches();}
 function renderOddsMatches(){
   const matches=ALL_MATCHES.filter(m=>m.group===oddsGroup);
-  if(allProfiles.length===0){document.getElementById('odds-matches').innerHTML='<div class="empty">参加者が予想すると表示されます</div>';return;}
+  if(!allProfiles.length){document.getElementById('odds-matches').innerHTML='<div class="empty">参加者が予想すると表示されます</div>';return;}
   document.getElementById('odds-matches').innerHTML=matches.map(m=>{
     const preds=allPredictions.filter(p=>p.match_id===m.id);
-    const wins=preds.filter(p=>p.result==='W').length,draws=preds.filter(p=>p.result==='D').length,losses=preds.filter(p=>p.result==='L').length;
-    const total2=wins+draws+losses;
-    if(total2===0)return`<div class="match-row"><div style="font-size:12px;color:var(--text3)">${FLAGS[m.home]||''} ${m.home} vs ${FLAGS[m.away]||''} ${m.away} — 予想なし</div></div>`;
-    return`<div class="match-row">
-      <div style="font-size:13px;font-weight:600;margin-bottom:4px">${FLAGS[m.home]||''} ${m.home} vs ${FLAGS[m.away]||''} ${m.away}</div>
-      <div style="display:flex;gap:6px;font-size:11px;color:var(--text3);margin-bottom:5px">${wins}票 / ${draws}票 / ${losses}票</div>
-      <div style="display:flex;gap:5px">
-        <span class="badge badge-green">H ${(total2/Math.max(wins,.5)).toFixed(1)}倍</span>
-        <span class="badge badge-amber">引 ${(total2/Math.max(draws,.5)).toFixed(1)}倍</span>
-        <span class="badge badge-red">A ${(total2/Math.max(losses,.5)).toFixed(1)}倍</span>
-      </div>
-    </div>`;
+    const w=preds.filter(p=>p.result==='W').length,d=preds.filter(p=>p.result==='D').length,l=preds.filter(p=>p.result==='L').length,tot=w+d+l;
+    if(!tot)return`<div class="match-row"><div style="font-size:12px;color:var(--text3)">${FLAGS[m.home]||''} ${m.home} vs ${FLAGS[m.away]||''} ${m.away} — 予想なし</div></div>`;
+    return`<div class="match-row"><div style="font-size:13px;font-weight:600;margin-bottom:4px">${FLAGS[m.home]||''} ${m.home} vs ${FLAGS[m.away]||''} ${m.away}</div><div style="display:flex;gap:6px;font-size:11px;color:var(--text3);margin-bottom:5px">${w}票 / ${d}票 / ${l}票</div><div style="display:flex;gap:5px"><span class="badge badge-green">H ${(tot/Math.max(w,.5)).toFixed(1)}倍</span><span class="badge badge-amber">引 ${(tot/Math.max(d,.5)).toFixed(1)}倍</span><span class="badge badge-red">A ${(tot/Math.max(l,.5)).toFixed(1)}倍</span></div></div>`;
   }).join('');
 }
 
@@ -558,113 +586,69 @@ function renderRanking(){
   const scores=allProfiles.map((p,i)=>{
     const preds=allPredictions.filter(pr=>pr.user_id===p.id);
     let pts=0;preds.forEach(pr=>{const r=allResults[pr.match_id];if(r?.result&&r.result===pr.result)pts+=3;});
-    const champPick=champPicks.find(c=>c.user_id===p.id);
-    const totalPreds=preds.length;const pct=Math.round(totalPreds/72*100);
-    const col=AVATARS[i%AVATARS.length];
-    return{name:p.display_name,pts,preds:totalPreds,pct,col,isAdmin:p.is_admin,champ:champPick?.team_name||''};
+    const cp=champPicks.find(c=>c.user_id===p.id);const sp=scorerPicks.find(c=>c.user_id===p.id);
+    const totalPreds=preds.length,pct=Math.round(totalPreds/72*100),col=AVATARS[i%AVATARS.length];
+    return{name:p.display_name,pts,preds:totalPreds,pct,col,isAdmin:p.is_admin,champ:cp?.team_name||'',scorer:sp?.player_name||''};
   }).sort((a,b)=>b.pts-a.pts||b.preds-a.preds);
-  if(scores.length===0){document.getElementById('ranking-list').innerHTML='<div class="empty">まだ誰も登録していません</div>';return;}
-  document.getElementById('ranking-list').innerHTML=scores.map((u,i)=>`<div class="rank-row">
-    <div class="rank-num">${['🥇','🥈','🥉'][i]||i+1}</div>
-    <div class="rank-avatar" style="background:${u.col}33;color:${u.col}">${u.name.slice(0,2)}</div>
-    <div class="rank-info">
-      <div class="rank-name">${u.name}${u.isAdmin?' 👑':''}</div>
-      <div class="rank-sub">${FLAGS[u.champ]||''} ${u.champ||'優勝未予想'} | ${u.preds}試合予想済</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${u.pct}%;background:${u.col}"></div></div>
-    </div>
-    <div class="rank-pts">${u.pts}pt</div>
-  </div>`).join('');
+  if(!scores.length){document.getElementById('ranking-list').innerHTML='<div class="empty">まだ誰も登録していません</div>';return;}
+  document.getElementById('ranking-list').innerHTML=scores.map((u,i)=>`<div class="rank-row"><div class="rank-num">${['🥇','🥈','🥉'][i]||i+1}</div><div class="rank-avatar" style="background:${u.col}33;color:${u.col}">${u.name.slice(0,2)}</div><div class="rank-info"><div class="rank-name">${u.name}${u.isAdmin?' 👑':''}</div><div class="rank-sub">${FLAGS[u.champ]||''} ${u.champ||'優勝未予想'} | ⚽${u.scorer||'得点王未予想'}</div><div class="progress-bar"><div class="progress-fill" style="width:${u.pct}%;background:${u.col}"></div></div></div><div class="rank-pts">${u.pts}pt</div></div>`).join('');
   if(currentProfile?.is_admin)renderResultSection();
 }
-
 function renderResultSection(){
   document.getElementById('result-group-tabs').innerHTML=Object.keys(GROUPS).map(g=>`<button class="gtab${g===resultGroup?' active':''}" onclick="setResultGroup('${g}')">${g}</button>`).join('');
   renderResultMatches();
 }
 function setResultGroup(g){resultGroup=g;renderResultSection();}
-
 function renderResultMatches(){
   const matches=ALL_MATCHES.filter(m=>m.group===resultGroup);
   document.getElementById('result-match-list').innerHTML=matches.map(m=>{
-    const rData=allResults[m.id];
-    const r=rData?.result||'';
-    const hs=rData?.home_score??'';const as=rData?.away_score??'';
-    const hf=FLAGS[m.home]||'';const af=FLAGS[m.away]||'';
-    return`<div class="match-row">
-      <div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text2)">${hf} ${m.home} vs ${af} ${m.away}</div>
-      <div class="result-btns">
-        <button class="result-btn${r==='W'?' sel-w':''}" onclick="setResult('${m.id}','W')">${hf} 勝ち</button>
-        <button class="result-btn${r==='D'?' sel-d':''}" onclick="setResult('${m.id}','D')">🤝 引分</button>
-        <button class="result-btn${r==='L'?' sel-l':''}" onclick="setResult('${m.id}','L')">${af} 勝ち</button>
-      </div>
-      <div class="score-input-row">
-        <span style="font-size:11px;color:var(--text3);min-width:20px">${hf}</span>
-        <input class="score-input" type="number" min="0" max="20" value="${hs}" id="hs_${m.id}" placeholder="0">
-        <span class="score-dash">-</span>
-        <input class="score-input" type="number" min="0" max="20" value="${as}" id="as_${m.id}" placeholder="0">
-        <span style="font-size:11px;color:var(--text3);min-width:20px;text-align:right">${af}</span>
-        <button class="score-save-btn" onclick="saveScore('${m.id}','${m.home}','${m.away}')">保存</button>
-      </div>
-    </div>`;
+    const rData=allResults[m.id],r=rData?.result||'',hs=rData?.home_score??'',as=rData?.away_score??'';
+    const hf=FLAGS[m.home]||'',af=FLAGS[m.away]||'';
+    return`<div class="match-row"><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text2)">${hf} ${m.home} vs ${af} ${m.away}</div><div class="result-btns"><button class="result-btn${r==='W'?' sel-w':''}" onclick="setResult('${m.id}','W')">${hf} 勝ち</button><button class="result-btn${r==='D'?' sel-d':''}" onclick="setResult('${m.id}','D')">🤝 引分</button><button class="result-btn${r==='L'?' sel-l':''}" onclick="setResult('${m.id}','L')">${af} 勝ち</button></div><div class="score-input-row"><span style="font-size:11px;color:var(--text3);min-width:20px">${hf}</span><input class="score-input" type="number" min="0" max="20" value="${hs}" id="hs_${m.id}" placeholder="0"><span class="score-dash">-</span><input class="score-input" type="number" min="0" max="20" value="${as}" id="as_${m.id}" placeholder="0"><span style="font-size:11px;color:var(--text3);min-width:20px;text-align:right">${af}</span><button class="score-save-btn" onclick="saveScore('${m.id}','${m.home}','${m.away}')">保存</button></div></div>`;
   }).join('');
 }
-
 async function setResult(matchId,result){
-  if(!currentProfile?.is_admin)return;
-  const rData=allResults[matchId];const prev=rData?.result;
-  if(prev===result){
-    delete allResults[matchId];
-    await sb.from('match_results').delete().eq('match_id',matchId);
-    renderResultMatches();renderRanking();renderMatchList();showToast('結果を解除しました');return;
-  }
-  const hs=parseInt(document.getElementById(`hs_${matchId}`)?.value)||null;
-  const as=parseInt(document.getElementById(`as_${matchId}`)?.value)||null;
+  if(!currentProfile?.is_admin)return;const rData=allResults[matchId];const prev=rData?.result;
+  if(prev===result){delete allResults[matchId];await sb.from('match_results').delete().eq('match_id',matchId);renderResultMatches();renderRanking();renderMatchList();showToast('結果を解除しました');return;}
+  const hs=parseInt(document.getElementById(`hs_${matchId}`)?.value)||null;const as=parseInt(document.getElementById(`as_${matchId}`)?.value)||null;
   allResults[matchId]={result,home_score:hs,away_score:as};
-  if(rData){await sb.from('match_results').update({result,home_score:hs,away_score:as}).eq('match_id',matchId);}
-  else{await sb.from('match_results').insert({match_id:matchId,result,home_score:hs,away_score:as,entered_by:currentUser.id});}
+  if(rData)await sb.from('match_results').update({result,home_score:hs,away_score:as}).eq('match_id',matchId);
+  else await sb.from('match_results').insert({match_id:matchId,result,home_score:hs,away_score:as,entered_by:currentUser.id});
   renderResultMatches();renderRanking();renderMatchList();showToast('結果を記録しました ✓');
 }
-
 async function saveScore(matchId,home,away){
   if(!currentProfile?.is_admin)return;
-  const hs=parseInt(document.getElementById(`hs_${matchId}`)?.value);
-  const as=parseInt(document.getElementById(`as_${matchId}`)?.value);
+  const hs=parseInt(document.getElementById(`hs_${matchId}`)?.value);const as=parseInt(document.getElementById(`as_${matchId}`)?.value);
   if(isNaN(hs)||isNaN(as)){showToast('スコアを入力してください');return;}
   const result=hs>as?'W':hs<as?'L':'D';
   allResults[matchId]={result,home_score:hs,away_score:as};
-  const existing=await sb.from('match_results').select('match_id').eq('match_id',matchId).single();
-  if(existing.data){await sb.from('match_results').update({result,home_score:hs,away_score:as}).eq('match_id',matchId);}
-  else{await sb.from('match_results').insert({match_id:matchId,result,home_score:hs,away_score:as,entered_by:currentUser.id});}
-  renderResultMatches();renderRanking();renderMatchList();
-  showToast(`${FLAGS[home]||''} ${hs} - ${as} ${FLAGS[away]||''} を保存しました`);
+  const ex=await sb.from('match_results').select('match_id').eq('match_id',matchId).single();
+  if(ex.data)await sb.from('match_results').update({result,home_score:hs,away_score:as}).eq('match_id',matchId);
+  else await sb.from('match_results').insert({match_id:matchId,result,home_score:hs,away_score:as,entered_by:currentUser.id});
+  renderResultMatches();renderRanking();renderMatchList();showToast(`${FLAGS[home]||''} ${hs} - ${as} ${FLAGS[away]||''} 保存しました`);
 }
 
 // NAVIGATION
-const SECTIONS=['schedule','champion','odds','ranking'];
+const SECTIONS=['schedule','predict','odds','ranking'];
 let currentSectionIdx=0;
 function showSection(name,btn){
-  const idx=SECTIONS.indexOf(name);if(idx===-1)return;
-  currentSectionIdx=idx;
+  const idx=SECTIONS.indexOf(name);if(idx===-1)return;currentSectionIdx=idx;
   document.getElementById('content-slider').style.transform=`translateX(-${idx*100}vw)`;
   document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===idx));
-  if(name==='champion')renderChampion();
+  if(name==='predict'){renderChampion();}
   if(name==='odds')renderOdds();
   if(name==='ranking')renderRanking();
 }
-
 function initSwipe(){
-  const slider=document.getElementById('content-slider');
-  if(!slider||slider._swipeInit)return;slider._swipeInit=true;
-  let sx=0,sy=0;
-  slider.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
-  slider.addEventListener('touchend',e=>{
+  const s=document.getElementById('content-slider');if(!s||s._si)return;s._si=true;let sx=0,sy=0;
+  s.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  s.addEventListener('touchend',e=>{
     const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
     if(Math.abs(dx)<Math.abs(dy)||Math.abs(dx)<50)return;
     if(dx<0&&currentSectionIdx<SECTIONS.length-1)showSection(SECTIONS[currentSectionIdx+1],document.querySelectorAll('.nav-item')[currentSectionIdx+1]);
     else if(dx>0&&currentSectionIdx>0)showSection(SECTIONS[currentSectionIdx-1],document.querySelectorAll('.nav-item')[currentSectionIdx-1]);
   },{passive:true});
 }
-
 function openMenu(){document.getElementById('menu-overlay').classList.add('show');}
 function closeMenu(e){if(e.target===document.getElementById('menu-overlay'))document.getElementById('menu-overlay').classList.remove('show');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
