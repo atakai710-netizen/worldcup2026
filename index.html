@@ -220,6 +220,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .st-pts{font-weight:800;color:var(--blue3)}
 .st-adv{background:rgba(21,101,192,.2)}
 .st-pos{background:rgba(245,124,0,.1)}
+/* BRACKET */
+.bracket{display:flex;gap:0;min-width:680px}
+.bround{display:flex;flex-direction:column;justify-content:space-around;width:120px;padding:0 4px;flex-shrink:0}
+.bround-title{font-size:9px;font-weight:700;color:var(--text3);text-align:center;letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;white-space:nowrap}
+.bmatch{display:flex;flex-direction:column;margin:3px 0;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--bg2)}
+.bteam{display:flex;align-items:center;padding:4px 5px;font-size:10px;font-weight:600;gap:3px;min-height:24px}
+.bteam .bflag{font-size:11px;flex-shrink:0;line-height:1}
+.bteam .bname{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text2);font-size:9px}
+.bteam .bscore{font-size:10px;font-weight:700;min-width:12px;text-align:right;color:var(--text3)}
+.bteam.bwinner{background:rgba(21,101,192,.35)}
+.bteam.bwinner .bname{color:#fff}
+.bteam.bwinner .bscore{color:var(--blue3)}
+.btbd{background:rgba(255,255,255,.04);height:24px;display:flex;align-items:center;padding:0 5px;font-size:8px;color:rgba(255,255,255,.2)}
+.bdiv{height:1px;background:var(--border)}
+.bchamp{text-align:center;padding:8px 4px;background:linear-gradient(135deg,rgba(212,175,55,.2),rgba(245,124,0,.15));border:1px solid rgba(212,175,55,.4);border-radius:8px;margin-top:6px}
+.bchamp-trophy{font-size:22px;line-height:1}
+.bchamp-label{font-size:8px;color:rgba(255,255,255,.4);margin-top:2px}
+.ko-match-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -342,13 +360,29 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
         </div>
       </div>
 
+      <!-- トーナメント表 -->
+      <div class="content" id="sec-bracket">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-align:center">← 左右にスクロール →</div>
+        <div id="bracket-wrap" style="overflow-x:auto;padding-bottom:8px">
+          <div id="bracket-inner"></div>
+        </div>
+        <div id="admin-ko-section" style="display:none;margin-top:10px">
+          <div class="card">
+            <div class="card-title">KOステージ 結果入力 <span class="badge-admin">管理者</span></div>
+            <button onclick="autoSyncKO()" style="width:100%;height:42px;background:linear-gradient(135deg,#1976D2,#1565C0);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px">🔄 KO結果を自動取得</button>
+            <div class="tab-scroll" id="ko-round-tabs"></div>
+            <div id="ko-result-list"></div>
+          </div>
+        </div>
+      </div>
+
   </div>
 
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="showSection('schedule',this)"><span class="nav-icon">📅</span><span>日程</span></button>
     <button class="nav-item" onclick="showSection('predict',this)"><span class="nav-icon">🎯</span><span>予想</span></button>
     <button class="nav-item" onclick="showSection('standings',this)"><span class="nav-icon">📋</span><span>成績</span></button>
-    <button class="nav-item" onclick="showSection('odds',this)"><span class="nav-icon">📊</span><span>オッズ</span></button>
+    <button class="nav-item" onclick="showSection('bracket',this)"><span class="nav-icon">🏆</span><span>KO</span></button>
     <button class="nav-item" onclick="showSection('ranking',this)"><span class="nav-icon">🥇</span><span>順位</span></button>
   </nav>
 </div>
@@ -486,10 +520,10 @@ function genMatches(){const m=[];Object.entries(GROUPS).forEach(([g,ts])=>{for(l
 const ALL_MATCHES=genMatches();
 
 let currentUser=null,currentProfile=null,appInitialized=false;
-let myPredictions={},allPredictions=[],allProfiles=[],allResults={},champPicks=[],scorerPicks=[],groupAdvancePicks=[],knockoutPicks=[];
-let scheduleGroup='A',oddsGroup='A',resultGroup='A',currentPredictTab='champion';
+let myPredictions={},allPredictions=[],allProfiles=[],allResults={},champPicks=[],scorerPicks=[],groupAdvancePicks=[],knockoutPicks=[],knockoutResults=[];
+let scheduleGroup='A',oddsGroup='A',resultGroup='A',currentPredictTab='champion',koRound='r32';
 let currentSectionIdx=0;
-const SECTIONS=['schedule','predict','standings','odds','ranking'];
+const SECTIONS=['schedule','predict','standings','bracket','ranking'];
 
 // ── AUTH ──
 sb.auth.getSession().then(async({data:{session}})=>{
@@ -534,7 +568,10 @@ async function loadProfile(){
     document.getElementById('user-avatar').textContent=data.display_name.slice(0,2);
     document.getElementById('menu-name').textContent=data.display_name+(data.is_admin?' 👑':'');
     document.getElementById('menu-email').textContent=currentUser.email;
-    if(data.is_admin)document.getElementById('admin-result-section').style.display='block';
+    if(data.is_admin){
+      document.getElementById('admin-result-section').style.display='block';
+      document.getElementById('admin-ko-section').style.display='block';
+    }
   }
 }
 async function logout(){
@@ -561,12 +598,16 @@ function showApp(){
 
 // ── DATA ──
 async function loadAll(){
-  await Promise.all([loadMyPredictions(),loadAllProfiles(),loadAllPredictions(),loadResults(),loadChampPicks(),loadScorerPicks(),loadGroupAdvancePicks(),loadKnockoutPicks()]);
+  await Promise.all([loadMyPredictions(),loadAllProfiles(),loadAllPredictions(),loadResults(),loadChampPicks(),loadScorerPicks(),loadGroupAdvancePicks(),loadKnockoutPicks(),loadKnockoutResults()]);
   renderScheduleGroupTabs();
   renderMatchList();
   renderStandingsGroupTabs();
   renderOdds();
   renderRanking();
+}
+async function loadKnockoutResults(){
+  const{data}=await sb.from('knockout_results').select('*');
+  knockoutResults=data||[];
 }
 async function loadMyPredictions(){
   if(!currentUser)return;
@@ -958,6 +999,228 @@ function renderStandingsTable(){
   </div>`;
 }
 
+// ── BRACKET ──
+const KO_ROUNDS_DEF=[
+  {id:'r32',label:'ラウンド32',count:16},
+  {id:'r16',label:'ラウンド16',count:8},
+  {id:'qf',label:'準々決勝',count:4},
+  {id:'sf',label:'準決勝',count:2},
+  {id:'f',label:'決勝',count:1},
+];
+
+function getKOResult(round,idx){return knockoutResults.find(r=>r.round===round&&r.match_index===idx)||null;}
+
+function getR32Teams(){
+  // グループ突破チームからR32を組む
+  // 組み合わせ: A1vsB2, B1vsA2, C1vsD2, D1vsC2... (FIFA方式)
+  const pairs=[
+    ['A',1,'B',2],['B',1,'A',2],['C',1,'D',2],['D',1,'C',2],
+    ['E',1,'F',2],['F',1,'E',2],['G',1,'H',2],['H',1,'G',2],
+    ['I',1,'J',2],['J',1,'I',2],['K',1,'L',2],['L',1,'K',2],
+    ['A',3,'C',3],['B',3,'D',3],['E',3,'G',3],['F',3,'H',3],
+  ];
+  return pairs.map(([g1,p1,g2,p2])=>{
+    return{home:getGroupTeam(g1,p1),away:getGroupTeam(g2,p2)};
+  });
+}
+
+function getGroupTeam(group,pos){
+  const teams=GROUPS[group];
+  const stats={};
+  teams.forEach(t=>{stats[t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};});
+  ALL_MATCHES.filter(m=>m.group===group).forEach(m=>{
+    const r=allResults[m.id];if(!r)return;
+    const hs=r.home_score??0,as=r.away_score??0;
+    stats[m.home].p++;stats[m.away].p++;
+    stats[m.home].gf+=hs;stats[m.home].ga+=as;
+    stats[m.away].gf+=as;stats[m.away].ga+=hs;
+    if(r.result==='W'){stats[m.home].w++;stats[m.home].pts+=3;stats[m.away].l++;}
+    else if(r.result==='D'){stats[m.home].d++;stats[m.away].d++;stats[m.home].pts+=1;stats[m.away].pts+=1;}
+    else if(r.result==='L'){stats[m.away].w++;stats[m.away].pts+=3;stats[m.home].l++;}
+  });
+  const sorted=[...teams].sort((a,b)=>{
+    const sa=stats[a],sb=stats[b];
+    if(sb.pts!==sa.pts)return sb.pts-sa.pts;
+    const gdA=sa.gf-sa.ga,gdB=sb.gf-sb.ga;
+    if(gdB!==gdA)return gdB-gdA;
+    return sb.gf-sa.gf;
+  });
+  return sorted[pos-1]||null;
+}
+
+function getKORoundTeams(round,idx){
+  if(round==='r32'){
+    const pairs=getR32Teams();
+    return{home:pairs[idx]?.home||null,away:pairs[idx]?.away||null};
+  }
+  const prevRound={r16:'r32',qf:'r16',sf:'qf',f:'sf'}[round];
+  if(!prevRound)return{home:null,away:null};
+  const home=getKOResult(prevRound,idx*2)?.winner||null;
+  const away=getKOResult(prevRound,idx*2+1)?.winner||null;
+  return{home,away};
+}
+
+function renderBracket(){
+  const el=document.getElementById('bracket-inner');
+  if(!el)return;
+  let html='<div class="bracket">';
+  KO_ROUNDS_DEF.forEach(round=>{
+    html+=`<div class="bround"><div class="bround-title">${round.label}</div>`;
+    for(let i=0;i<round.count;i++){
+      const res=getKOResult(round.id,i);
+      const{home,away}=getKORoundTeams(round.id,i);
+      const hs=res?.home_score;const as=res?.away_score;
+      const winner=res?.winner||null;
+      const homeClass=winner&&winner===home?'bteam bwinner':'bteam';
+      const awayClass=winner&&winner===away?'bteam bwinner':'bteam';
+      if(!home&&!away){
+        html+=`<div class="bmatch"><div class="btbd">勝者待ち</div><div class="bdiv"></div><div class="btbd">勝者待ち</div></div>`;
+      } else {
+        html+=`<div class="bmatch">
+          <div class="${homeClass}"><span class="bflag">${home?FLAGS[home]||'🏳':''}</span><span class="bname">${home||'?'}</span><span class="bscore">${hs!=null?hs:''}</span></div>
+          <div class="bdiv"></div>
+          <div class="${awayClass}"><span class="bflag">${away?FLAGS[away]||'🏳':''}</span><span class="bname">${away||'?'}</span><span class="bscore">${as!=null?as:''}</span></div>
+        </div>`;
+      }
+    }
+    html+='</div>';
+  });
+  // チャンピオン
+  const finalRes=getKOResult('f',0);
+  html+=`<div class="bround" style="justify-content:center">
+    <div class="bchamp"><div class="bchamp-trophy">🏆</div><div class="bchamp-label">${finalRes?.winner?finalRes.winner:'CHAMPION'}</div></div>
+  </div>`;
+  html+='</div>';
+  el.innerHTML=html;
+  // 管理者用KO入力
+  if(currentProfile?.is_admin)renderKORoundTabs();
+}
+
+function renderKORoundTabs(){
+  const el=document.getElementById('ko-round-tabs');
+  if(!el)return;
+  el.innerHTML=KO_ROUNDS_DEF.map(r=>`<button class="stab${r.id===koRound?' active':''}" onclick="setKORound('${r.id}')">${r.label}</button>`).join('');
+  renderKOResultInputs();
+}
+function setKORound(r){koRound=r;renderKORoundTabs();}
+
+function renderKOResultInputs(){
+  const el=document.getElementById('ko-result-list');if(!el)return;
+  const roundDef=KO_ROUNDS_DEF.find(r=>r.id===koRound);
+  if(!roundDef)return;
+  el.innerHTML=Array.from({length:roundDef.count},(_,i)=>{
+    const{home,away}=getKORoundTeams(koRound,i);
+    const res=getKOResult(koRound,i);
+    const hs=res?.home_score??'';const as=res?.away_score??'';
+    const hf=home?FLAGS[home]||'':'';const af=away?FLAGS[away]||'':'';
+    const hLabel=home||'未確定';const aLabel=away||'未確定';
+    return`<div class="ko-match-card">
+      <div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:6px">${hf} ${hLabel} vs ${af} ${aLabel}</div>
+      <div class="score-input-row">
+        <span style="font-size:11px;color:var(--text3)">${hf}</span>
+        <input class="score-input" type="number" min="0" max="20" value="${hs}" id="ko_hs_${koRound}_${i}" placeholder="0">
+        <span class="score-dash">-</span>
+        <input class="score-input" type="number" min="0" max="20" value="${as}" id="ko_as_${koRound}_${i}" placeholder="0">
+        <span style="font-size:11px;color:var(--text3)">${af}</span>
+        <button class="score-save-btn" onclick="saveKOScore('${koRound}',${i},'${home||''}','${away||''}')">保存</button>
+      </div>
+      ${res?.winner?`<div style="font-size:11px;color:var(--green4);margin-top:4px">✓ 勝者: ${FLAGS[res.winner]||''} ${res.winner}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+async function saveKOScore(round,idx,home,away){
+  if(!currentProfile?.is_admin||!home||!away)return;
+  const hs=parseInt(document.getElementById(`ko_hs_${round}_${idx}`)?.value);
+  const as=parseInt(document.getElementById(`ko_as_${round}_${idx}`)?.value);
+  if(isNaN(hs)||isNaN(as)){showToast('スコアを入力してください');return;}
+  // PK戦考慮：同点の場合は入力が多い方が勝者（手動で勝者を決める）
+  let winner=hs>as?home:hs<as?away:null;
+  if(!winner){
+    // 同点（PK）の場合はホームチームに注目
+    showToast('同点の場合は勝者を選んでください');
+    // PK選択ボタンを追加
+    const card=document.getElementById(`ko_hs_${round}_${idx}`)?.closest('.ko-match-card');
+    if(card&&!card.querySelector('.pk-btns')){
+      const pkDiv=document.createElement('div');
+      pkDiv.className='pk-btns';
+      pkDiv.style.cssText='display:flex;gap:6px;margin-top:6px';
+      pkDiv.innerHTML=`<span style="font-size:11px;color:var(--amber2)">PK勝者:</span>
+        <button onclick="saveKOWinner('${round}',${idx},'${home}','${away}',${hs},${as},'${home}')" style="flex:1;padding:5px;font-size:11px;font-weight:600;background:rgba(21,101,192,.4);border:1px solid var(--blue2);border-radius:6px;color:var(--blue3);cursor:pointer">${FLAGS[home]||''} ${home}</button>
+        <button onclick="saveKOWinner('${round}',${idx},'${home}','${away}',${hs},${as},'${away}')" style="flex:1;padding:5px;font-size:11px;font-weight:600;background:rgba(229,57,53,.3);border:1px solid var(--red);border-radius:6px;color:#ff8a80;cursor:pointer">${FLAGS[away]||''} ${away}</button>`;
+      card.appendChild(pkDiv);
+    }
+    return;
+  }
+  await saveKOWinner(round,idx,home,away,hs,as,winner);
+}
+
+async function saveKOWinner(round,idx,home,away,hs,as,winner){
+  const existing=knockoutResults.find(r=>r.round===round&&r.match_index===idx);
+  const data={round,match_index:idx,home_team:home,away_team:away,home_score:hs,away_score:as,winner,entered_by:currentUser.id};
+  if(existing){
+    await sb.from('knockout_results').update(data).match({round,match_index:idx});
+    knockoutResults=knockoutResults.map(r=>r.round===round&&r.match_index===idx?{...r,...data}:r);
+  } else {
+    await sb.from('knockout_results').insert(data);
+    knockoutResults.push({...data});
+  }
+  renderBracket();renderKOResultInputs();
+  showToast(`${FLAGS[winner]||''} ${winner} が勝ち上がりました！`);
+}
+
+async function autoSyncKO(){
+  showToast('🔄 KO結果を同期中...');
+  try{
+    const res=await fetch('https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json');
+    const data=await res.json();
+    // KOラウンドのマッチを探す（グループステージ以外）
+    const koMatches=(data.matches||[]).filter(m=>m.round&&!m.round.match(/group/i)&&m.score);
+    let updated=0;
+    for(const m of koMatches){
+      if(!m.score)continue;
+      const scoreStr=typeof m.score==='object'?`${m.score.ft[0]}:${m.score.ft[1]}`:String(m.score);
+      const parts=scoreStr.split(/[:\-]/);
+      if(parts.length<2)continue;
+      const hs=parseInt(parts[0]),as=parseInt(parts[1]);
+      if(isNaN(hs)||isNaN(as))continue;
+      // ラウンド名からround IDを判定
+      const roundStr=(m.round||'').toLowerCase();
+      let roundId=null;
+      if(roundStr.includes('32'))roundId='r32';
+      else if(roundStr.includes('16'))roundId='r16';
+      else if(roundStr.includes('quarter'))roundId='qf';
+      else if(roundStr.includes('semi'))roundId='sf';
+      else if(roundStr.includes('final'))roundId='f';
+      if(!roundId)continue;
+      const home=API_TEAM_MAP[m.team1]||m.team1;
+      const away=API_TEAM_MAP[m.team2]||m.team2;
+      // match_indexを特定
+      const roundDef=KO_ROUNDS_DEF.find(r=>r.id===roundId);
+      if(!roundDef)continue;
+      for(let i=0;i<roundDef.count;i++){
+        const{home:h,away:a}=getKORoundTeams(roundId,i);
+        if(h===home&&a===away){
+          const winner=hs>as?home:hs<as?away:null;
+          if(!winner)continue;
+          const existing=knockoutResults.find(r=>r.round===roundId&&r.match_index===i);
+          const d={round:roundId,match_index:i,home_team:home,away_team:away,home_score:hs,away_score:as,winner,entered_by:currentUser.id};
+          if(existing){
+            await sb.from('knockout_results').update(d).match({round:roundId,match_index:i});
+            knockoutResults=knockoutResults.map(r=>r.round===roundId&&r.match_index===i?{...r,...d}:r);
+          } else {
+            await sb.from('knockout_results').insert(d);
+            knockoutResults.push({...d});
+          }
+          updated++;break;
+        }
+      }
+    }
+    if(updated>0){renderBracket();showToast(`🔄 ${updated}試合のKO結果を同期しました`);}
+    else showToast('新しいKO結果はありませんでした');
+  }catch(e){showToast('同期エラーが発生しました');console.error(e);}
+}
+
 // ── ODDS ──
 function renderOdds(){
   const counts={};const allTeams=Object.values(GROUPS).flat();allTeams.forEach(t=>counts[t]=0);
@@ -1050,6 +1313,7 @@ function showSection(name,btn){
   document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===idx));
   if(name==='predict')renderChampion();
   if(name==='standings')renderStandings();
+  if(name==='bracket')renderBracket();
   if(name==='odds')renderOdds();
   if(name==='ranking')renderRanking();
 }
