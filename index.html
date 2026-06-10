@@ -210,6 +210,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--text3);font-size:14px;gap:8px}
 .spinner{width:18px;height:18px;border:2px solid rgba(255,255,255,.1);border-top-color:var(--blue3);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.standings-table{width:100%;border-collapse:collapse;font-size:12px}
+.standings-table th{font-size:10px;color:var(--text3);font-weight:600;padding:4px;text-align:center;border-bottom:1px solid var(--border)}
+.standings-table th.left{text-align:left;padding-left:0}
+.standings-table td{padding:8px 4px;text-align:center;border-bottom:1px solid rgba(255,255,255,.04);color:var(--text2)}
+.standings-table td.left{text-align:left;padding-left:0}
+.standings-table tr:last-child td{border-bottom:none}
+.team-cell{display:flex;align-items:center;gap:6px;font-weight:600;color:var(--text)}
+.st-pts{font-weight:800;color:var(--blue3)}
+.st-adv{background:rgba(21,101,192,.2)}
+.st-pos{background:rgba(245,124,0,.1)}
 </style>
 </head>
 <body>
@@ -319,11 +329,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
         </div>
       </div>
 
+      <!-- 成績表 -->
+      <div class="content" id="sec-standings">
+        <div class="card" style="padding-bottom:4px">
+          <div class="card-title">グループステージ 成績表</div>
+          <div class="group-scroll" id="standings-group-tabs"></div>
+          <div id="standings-table"></div>
+        </div>
+      </div>
+
   </div>
 
   <nav class="bottom-nav">
     <button class="nav-item active" onclick="showSection('schedule',this)"><span class="nav-icon">📅</span><span>日程</span></button>
     <button class="nav-item" onclick="showSection('predict',this)"><span class="nav-icon">🎯</span><span>予想</span></button>
+    <button class="nav-item" onclick="showSection('standings',this)"><span class="nav-icon">📋</span><span>成績</span></button>
     <button class="nav-item" onclick="showSection('odds',this)"><span class="nav-icon">📊</span><span>オッズ</span></button>
     <button class="nav-item" onclick="showSection('ranking',this)"><span class="nav-icon">🥇</span><span>順位</span></button>
   </nav>
@@ -465,7 +485,7 @@ let currentUser=null,currentProfile=null,appInitialized=false;
 let myPredictions={},allPredictions=[],allProfiles=[],allResults={},champPicks=[],scorerPicks=[],groupAdvancePicks=[],knockoutPicks=[];
 let scheduleGroup='A',oddsGroup='A',resultGroup='A',currentPredictTab='champion';
 let currentSectionIdx=0;
-const SECTIONS=['schedule','predict','odds','ranking'];
+const SECTIONS=['schedule','predict','standings','odds','ranking'];
 
 // ── AUTH ──
 sb.auth.getSession().then(async({data:{session}})=>{
@@ -540,6 +560,7 @@ async function loadAll(){
   await Promise.all([loadMyPredictions(),loadAllProfiles(),loadAllPredictions(),loadResults(),loadChampPicks(),loadScorerPicks(),loadGroupAdvancePicks(),loadKnockoutPicks()]);
   renderScheduleGroupTabs();
   renderMatchList();
+  renderStandingsGroupTabs();
   renderOdds();
   renderRanking();
 }
@@ -798,6 +819,71 @@ async function setScorerPick(player,team){
   await loadScorerPicks();renderScorer();showToast(`${player} を得点王予想に設定しました`);
 }
 
+// ── STANDINGS ──
+let standingsGroup='A';
+function renderStandingsGroupTabs(){
+  const el=document.getElementById('standings-group-tabs');
+  if(!el)return;
+  el.innerHTML=Object.keys(GROUPS).map(g=>`<button class="gtab${g===standingsGroup?' active':''}" onclick="setStandingsGroup('${g}')">${g}</button>`).join('');
+}
+function setStandingsGroup(g){standingsGroup=g;renderStandingsGroupTabs();renderStandingsTable();}
+function renderStandings(){
+  renderStandingsGroupTabs();
+  renderStandingsTable();
+}
+function renderStandingsTable(){
+  const teams=GROUPS[standingsGroup];
+  // 各チームの成績を集計
+  const stats={};
+  teams.forEach(t=>{stats[t]={p:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};});
+  ALL_MATCHES.filter(m=>m.group===standingsGroup).forEach(m=>{
+    const r=allResults[m.id];
+    if(!r)return;
+    const hs=r.home_score??0;const as=r.away_score??0;
+    stats[m.home].p++;stats[m.away].p++;
+    stats[m.home].gf+=hs;stats[m.home].ga+=as;
+    stats[m.away].gf+=as;stats[m.away].ga+=hs;
+    if(r.result==='W'){stats[m.home].w++;stats[m.home].pts+=3;stats[m.away].l++;}
+    else if(r.result==='D'){stats[m.home].d++;stats[m.away].d++;stats[m.home].pts+=1;stats[m.away].pts+=1;}
+    else if(r.result==='L'){stats[m.away].w++;stats[m.away].pts+=3;stats[m.home].l++;}
+  });
+  // 順位ソート（勝点→得失点差→得点）
+  const sorted=[...teams].sort((a,b)=>{
+    const sa=stats[a],sb=stats[b];
+    if(sb.pts!==sa.pts)return sb.pts-sa.pts;
+    const gdA=sa.gf-sa.ga,gdB=sb.gf-sb.ga;
+    if(gdB!==gdA)return gdB-gdA;
+    return sb.gf-sa.gf;
+  });
+  const el=document.getElementById('standings-table');
+  if(!el)return;
+  el.innerHTML=`<table class="standings-table">
+    <thead><tr>
+      <th class="left" style="width:36px">#</th>
+      <th class="left">チーム</th>
+      <th>試</th><th>勝</th><th>分</th><th>負</th>
+      <th>得</th><th>失</th><th>差</th>
+      <th class="st-pts">勝点</th>
+    </tr></thead>
+    <tbody>${sorted.map((t,i)=>{
+      const s=stats[t];const gd=s.gf-s.ga;
+      const rowClass=i<2?'st-adv':i===2?'st-pos':'';
+      return`<tr class="${rowClass}">
+        <td class="left" style="font-size:13px;font-weight:700;color:${i<2?'var(--blue3)':i===2?'var(--amber2)':'var(--text3)'}">${i+1}</td>
+        <td class="left"><div class="team-cell">${FLAGS[t]||''}<span style="font-size:12px">${t}</span></div></td>
+        <td>${s.p}</td><td>${s.w}</td><td>${s.d}</td><td>${s.l}</td>
+        <td>${s.gf}</td><td>${s.ga}</td>
+        <td style="color:${gd>0?'var(--green4)':gd<0?'#ff8a80':'var(--text3)'}">${gd>0?'+':''}${gd}</td>
+        <td class="st-pts">${s.pts}</td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>
+  <div style="display:flex;gap:10px;margin-top:10px;font-size:11px">
+    <div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:rgba(21,101,192,.4)"></div><span style="color:var(--text3)">突破確定圏</span></div>
+    <div style="display:flex;align-items:center;gap:4px"><div style="width:10px;height:10px;border-radius:2px;background:rgba(245,124,0,.2)"></div><span style="color:var(--text3)">3位通過圏</span></div>
+  </div>`;
+}
+
 // ── ODDS ──
 function renderOdds(){
   const counts={};const allTeams=Object.values(GROUPS).flat();allTeams.forEach(t=>counts[t]=0);
@@ -854,7 +940,9 @@ async function setResult(matchId,result){
   if(rData?.result===result){
     delete allResults[matchId];
     await sb.from('match_results').delete().eq('match_id',matchId);
-    renderResultMatches();renderRanking();renderMatchList();showToast('結果を解除しました');return;
+    renderResultMatches();renderRanking();renderMatchList();
+  if(document.getElementById('sec-standings')?.classList.contains('active'))renderStandings();
+  showToast('結果を解除しました');return;
   }
   const hs=parseInt(document.getElementById(`hs_${matchId}`)?.value)||null;
   const as=parseInt(document.getElementById(`as_${matchId}`)?.value)||null;
@@ -887,6 +975,7 @@ function showSection(name,btn){
   });
   document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===idx));
   if(name==='predict')renderChampion();
+  if(name==='standings')renderStandings();
   if(name==='odds')renderOdds();
   if(name==='ranking')renderRanking();
 }
