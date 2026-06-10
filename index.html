@@ -393,15 +393,22 @@ async function doLogin() {
     const {data, error} = await sb.auth.signInWithPassword({email, password:pass});
     if (error) {
       document.getElementById('login-error').textContent = 'メールアドレスまたはパスワードが正しくありません';
+      btn.textContent = 'ログイン';
+      btn.disabled = false;
     } else if (data.session) {
       currentUser = data.session.user;
+      // まず画面を切り替える
+      document.getElementById('auth-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      btn.textContent = 'ログイン';
+      btn.disabled = false;
+      // その後データ読み込み
       try { await loadProfile(); } catch(e) { console.error('loadProfile error:', e); }
       showApp();
       try { await loadAll(); } catch(e) { console.error('loadAll error:', e); }
     }
   } catch(e) {
-    document.getElementById('login-error').textContent = 'エラーが発生しました: ' + e.message;
-  } finally {
+    document.getElementById('login-error').textContent = 'エラー: ' + e.message;
     btn.textContent = 'ログイン';
     btn.disabled = false;
   }
