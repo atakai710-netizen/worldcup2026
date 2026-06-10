@@ -335,6 +335,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
       <div style="font-size:18px;font-weight:700" id="menu-name">-</div>
       <div style="font-size:13px;color:var(--text3)" id="menu-email">-</div>
     </div>
+    <div class="menu-item" onclick="toggleNameEdit()">
+      <span class="menu-item-icon">✏️</span>表示名を変更
+    </div>
+    <div id="name-edit-area" style="display:none;padding:8px 0 12px">
+      <div style="display:flex;gap:8px">
+        <input type="text" id="new-display-name" class="form-input" placeholder="新しい表示名" style="flex:1;height:40px;font-size:14px">
+        <button onclick="saveDisplayName()" style="height:40px;padding:0 16px;background:var(--blue2);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">保存</button>
+      </div>
+    </div>
     <div class="menu-item" onclick="logout()"><span class="menu-item-icon">🚪</span>ログアウト</div>
   </div>
 </div>
@@ -350,14 +359,102 @@ const FLAGS={Mexico:'🇲🇽','South Africa':'🇿🇦','South Korea':'🇰🇷
 const AVATARS=['#1976D2','#e53935','#7c4dff','#fb8c00','#00897b','#d81b60'];
 const BASE_ODDS={Argentina:3.5,France:4.0,Spain:3.8,England:5.0,Brazil:4.5,Germany:6.0,Portugal:7.0,Netherlands:8.0,Belgium:10.0,Uruguay:12.0,Japan:20.0,'South Korea':25.0,'Ivory Coast':30.0,Colombia:18.0,Morocco:22.0,Croatia:25.0,Mexico:20.0,Norway:35.0,Australia:50.0,Ecuador:40.0,Sweden:45.0,USA:30.0,'Saudi Arabia':60.0,Senegal:40.0,Switzerland:15.0,'Czech Republic':35.0,Austria:40.0,Tunisia:80.0,Ghana:70.0,'Cabo Verde':150.0,'DR Congo':100.0,Algeria:50.0,'New Zealand':200.0,Iraq:200.0,Jordan:150.0,Haiti:300.0,Uzbekistan:200.0,'Curaçao':300.0,Canada:35.0,'Bosnia-Herz.':60.0,Qatar:120.0,'South Africa':100.0,Scotland:60.0,Paraguay:70.0,'Türkiye':45.0,Egypt:80.0,Iran:100.0,Panama:200.0};
 const TOP_SCORERS=[
-  {name:'Lionel Messi',team:'Argentina',flag:'🇦🇷'},{name:'Kylian Mbappé',team:'France',flag:'🇫🇷'},
-  {name:'Erling Haaland',team:'Norway',flag:'🇳🇴'},{name:'Vinicius Jr.',team:'Brazil',flag:'🇧🇷'},
-  {name:'Lamine Yamal',team:'Spain',flag:'🇪🇸'},{name:'Harry Kane',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
-  {name:'Bukayo Saka',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'Pedri',team:'Spain',flag:'🇪🇸'},
-  {name:'Florian Wirtz',team:'Germany',flag:'🇩🇪'},{name:'Santiago Giménez',team:'Mexico',flag:'🇲🇽'},
-  {name:'Darwin Núñez',team:'Uruguay',flag:'🇺🇾'},{name:'Rafael Leão',team:'Portugal',flag:'🇵🇹'},
-  {name:'Alejandro Garnacho',team:'Argentina',flag:'🇦🇷'},{name:'Takefusa Kubo',team:'Japan',flag:'🇯🇵'},
-  {name:'Breel Embolo',team:'Switzerland',flag:'🇨🇭'},{name:'Memphis Depay',team:'Netherlands',flag:'🇳🇱'},
+  // Algeria 🇩🇿
+  {name:'Riyad Mahrez',team:'Algeria',flag:'🇩🇿'},{name:'Amine Gouiri',team:'Algeria',flag:'🇩🇿'},{name:'Anis Hadj Moussa',team:'Algeria',flag:'🇩🇿'},{name:'Mohamed Amoura',team:'Algeria',flag:'🇩🇿'},{name:'Fares Ghedjemis',team:'Algeria',flag:'🇩🇿'},
+  // Argentina 🇦🇷
+  {name:'Lionel Messi',team:'Argentina',flag:'🇦🇷'},{name:'Julián Álvarez',team:'Argentina',flag:'🇦🇷'},{name:'Lautaro Martínez',team:'Argentina',flag:'🇦🇷'},{name:'Thiago Almada',team:'Argentina',flag:'🇦🇷'},{name:'Giuliano Simeone',team:'Argentina',flag:'🇦🇷'},{name:'Nico Paz',team:'Argentina',flag:'🇦🇷'},
+  // Australia 🇦🇺
+  {name:'Mathew Leckie',team:'Australia',flag:'🇦🇺'},{name:'Nestory Irankunda',team:'Australia',flag:'🇦🇺'},{name:'Tete Yengi',team:'Australia',flag:'🇦🇺'},{name:'Cristian Volpato',team:'Australia',flag:'🇦🇺'},
+  // Austria 🇦🇹
+  {name:'Marko Arnautovic',team:'Austria',flag:'🇦🇹'},{name:'Michael Gregoritsch',team:'Austria',flag:'🇦🇹'},{name:'Sasa Kalajdzic',team:'Austria',flag:'🇦🇹'},{name:'Patrick Wimmer',team:'Austria',flag:'🇦🇹'},
+  // Belgium 🇧🇪
+  {name:'Romelu Lukaku',team:'Belgium',flag:'🇧🇪'},{name:'Leandro Trossard',team:'Belgium',flag:'🇧🇪'},{name:'Jeremy Doku',team:'Belgium',flag:'🇧🇪'},{name:'Dodi Lukebakio',team:'Belgium',flag:'🇧🇪'},{name:'Charles De Ketelaere',team:'Belgium',flag:'🇧🇪'},
+  // Bosnia 🇧🇦
+  {name:'Edin Džeko',team:'Bosnia-Herz.',flag:'🇧🇦'},{name:'Ermedin Demirovic',team:'Bosnia-Herz.',flag:'🇧🇦'},{name:'Haris Tabakovic',team:'Bosnia-Herz.',flag:'🇧🇦'},
+  // Brazil 🇧🇷
+  {name:'Vinicius Jr.',team:'Brazil',flag:'🇧🇷'},{name:'Neymar Jr',team:'Brazil',flag:'🇧🇷'},{name:'Raphinha',team:'Brazil',flag:'🇧🇷'},{name:'Endrick',team:'Brazil',flag:'🇧🇷'},{name:'Gabriel Martinelli',team:'Brazil',flag:'🇧🇷'},{name:'Matheus Cunha',team:'Brazil',flag:'🇧🇷'},
+  // Canada 🇨🇦
+  {name:'Jonathan David',team:'Canada',flag:'🇨🇦'},{name:'Tajon Buchanan',team:'Canada',flag:'🇨🇦'},{name:'Alphonso Davies',team:'Canada',flag:'🇨🇦'},{name:'Cyle Larin',team:'Canada',flag:'🇨🇦'},
+  // Colombia 🇨🇴
+  {name:'Luis Díaz',team:'Colombia',flag:'🇨🇴'},{name:'Jhon Córdoba',team:'Colombia',flag:'🇨🇴'},{name:'Cucho Hernandez',team:'Colombia',flag:'🇨🇴'},{name:'Luis Suarez',team:'Colombia',flag:'🇨🇴'},
+  // DR Congo 🇨🇩
+  {name:'Yoane Wissa',team:'DR Congo',flag:'🇨🇩'},{name:'Cédric Bakambu',team:'DR Congo',flag:'🇨🇩'},{name:'Simon Banza',team:'DR Congo',flag:'🇨🇩'},{name:'Gaël Kakuta',team:'DR Congo',flag:'🇨🇩'},
+  // Ivory Coast 🇨🇮
+  {name:'Amad Diallo',team:'Ivory Coast',flag:'🇨🇮'},{name:'Nicolas Pépé',team:'Ivory Coast',flag:'🇨🇮'},{name:'Simon Adingra',team:'Ivory Coast',flag:'🇨🇮'},{name:'Elye Wahi',team:'Ivory Coast',flag:'🇨🇮'},
+  // Croatia 🇭🇷
+  {name:'Andrej Kramarić',team:'Croatia',flag:'🇭🇷'},{name:'Ivan Perišić',team:'Croatia',flag:'🇭🇷'},{name:'Marko Livaja',team:'Croatia',flag:'🇭🇷'},
+  // Czech Republic 🇨🇿
+  {name:'Patrik Schick',team:'Czech Republic',flag:'🇨🇿'},{name:'Adam Hložek',team:'Czech Republic',flag:'🇨🇿'},{name:'Ondřej Lingr',team:'Czech Republic',flag:'🇨🇿'},
+  // Ecuador 🇪🇨
+  {name:'Enner Valencia',team:'Ecuador',flag:'🇪🇨'},{name:'Kevin Rodríguez',team:'Ecuador',flag:'🇪🇨'},{name:'Jeremy Sarmiento',team:'Ecuador',flag:'🇪🇨'},
+  // Egypt 🇪🇬
+  {name:'Mohamed Salah',team:'Egypt',flag:'🇪🇬'},{name:'Omar Marmoush',team:'Egypt',flag:'🇪🇬'},{name:'Mostafa Mohamed',team:'Egypt',flag:'🇪🇬'},
+  // England 🏴󠁧󠁢󠁥󠁮󠁧󠁿
+  {name:'Harry Kane',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'Bukayo Saka',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'Phil Foden',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'Jude Bellingham',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'Marcus Rashford',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
+  // France 🇫🇷
+  {name:'Kylian Mbappé',team:'France',flag:'🇫🇷'},{name:'Ousmane Dembélé',team:'France',flag:'🇫🇷'},{name:'Marcus Thuram',team:'France',flag:'🇫🇷'},{name:'Antoine Griezmann',team:'France',flag:'🇫🇷'},{name:'Randal Kolo Muani',team:'France',flag:'🇫🇷'},
+  // Germany 🇩🇪
+  {name:'Florian Wirtz',team:'Germany',flag:'🇩🇪'},{name:'Jamal Musiala',team:'Germany',flag:'🇩🇪'},{name:'Kai Havertz',team:'Germany',flag:'🇩🇪'},{name:'Leroy Sané',team:'Germany',flag:'🇩🇪'},{name:'Serge Gnabry',team:'Germany',flag:'🇩🇪'},
+  // Ghana 🇬🇭
+  {name:'Mohammed Kudus',team:'Ghana',flag:'🇬🇭'},{name:'Jordan Ayew',team:'Ghana',flag:'🇬🇭'},{name:'Antoine Semenyo',team:'Ghana',flag:'🇬🇭'},
+  // Iran 🇮🇷
+  {name:'Mehdi Taremi',team:'Iran',flag:'🇮🇷'},{name:'Sardar Azmoun',team:'Iran',flag:'🇮🇷'},{name:'Alireza Jahanbakhsh',team:'Iran',flag:'🇮🇷'},
+  // Japan 🇯🇵
+  {name:'Takefusa Kubo',team:'Japan',flag:'🇯🇵'},{name:'Kaoru Mitoma',team:'Japan',flag:'🇯🇵'},{name:'Ayase Ueda',team:'Japan',flag:'🇯🇵'},{name:'Junya Ito',team:'Japan',flag:'🇯🇵'},{name:'Ritsu Doan',team:'Japan',flag:'🇯🇵'},
+  // Jordan 🇯🇴
+  {name:'Musa Al-Taamari',team:'Jordan',flag:'🇯🇴'},{name:'Yazan Al-Naimat',team:'Jordan',flag:'🇯🇴'},
+  // Mexico 🇲🇽
+  {name:'Santiago Giménez',team:'Mexico',flag:'🇲🇽'},{name:'Hirving Lozano',team:'Mexico',flag:'🇲🇽'},{name:'Raúl Jiménez',team:'Mexico',flag:'🇲🇽'},{name:'Henry Martín',team:'Mexico',flag:'🇲🇽'},
+  // Morocco 🇲🇦
+  {name:'Youssef En-Nesyri',team:'Morocco',flag:'🇲🇦'},{name:'Hakim Ziyech',team:'Morocco',flag:'🇲🇦'},{name:'Sofiane Boufal',team:'Morocco',flag:'🇲🇦'},{name:'Ayoub El Kaabi',team:'Morocco',flag:'🇲🇦'},
+  // Netherlands 🇳🇱
+  {name:'Memphis Depay',team:'Netherlands',flag:'🇳🇱'},{name:'Cody Gakpo',team:'Netherlands',flag:'🇳🇱'},{name:'Donyell Malen',team:'Netherlands',flag:'🇳🇱'},{name:'Wout Weghorst',team:'Netherlands',flag:'🇳🇱'},
+  // New Zealand 🇳🇿
+  {name:'Chris Wood',team:'New Zealand',flag:'🇳🇿'},{name:'Liberato Cacace',team:'New Zealand',flag:'🇳🇿'},
+  // Norway 🇳🇴
+  {name:'Erling Haaland',team:'Norway',flag:'🇳🇴'},{name:'Martin Ødegaard',team:'Norway',flag:'🇳🇴'},{name:'Alexander Sørloth',team:'Norway',flag:'🇳🇴'},
+  // Panama 🇵🇦
+  {name:'Ismael Díaz',team:'Panama',flag:'🇵🇦'},{name:'Rolando Blackburn',team:'Panama',flag:'🇵🇦'},
+  // Paraguay 🇵🇾
+  {name:'Miguel Almirón',team:'Paraguay',flag:'🇵🇾'},{name:'Antonio Sanabria',team:'Paraguay',flag:'🇵🇾'},
+  // Portugal 🇵🇹
+  {name:'Cristiano Ronaldo',team:'Portugal',flag:'🇵🇹'},{name:'Rafael Leão',team:'Portugal',flag:'🇵🇹'},{name:'Gonçalo Ramos',team:'Portugal',flag:'🇵🇹'},{name:'Pedro Neto',team:'Portugal',flag:'🇵🇹'},
+  // Qatar 🇶🇦
+  {name:'Akram Afif',team:'Qatar',flag:'🇶🇦'},{name:'Almoez Ali',team:'Qatar',flag:'🇶🇦'},
+  // Saudi Arabia 🇸🇦
+  {name:'Salem Al-Dawsari',team:'Saudi Arabia',flag:'🇸🇦'},{name:'Saleh Al-Shehri',team:'Saudi Arabia',flag:'🇸🇦'},{name:'Firas Al-Buraikan',team:'Saudi Arabia',flag:'🇸🇦'},
+  // Scotland 🏴󠁧󠁢󠁳󠁣󠁴󠁿
+  {name:'Lyndon Dykes',team:'Scotland',flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'},{name:'Ryan Christie',team:'Scotland',flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'},{name:'John McGinn',team:'Scotland',flag:'🏴󠁧󠁢󠁳󠁣󠁴󠁿'},
+  // Senegal 🇸🇳
+  {name:'Sadio Mané',team:'Senegal',flag:'🇸🇳'},{name:'Ismaïla Sarr',team:'Senegal',flag:'🇸🇳'},{name:'Nicolas Jackson',team:'Senegal',flag:'🇸🇳'},
+  // South Korea 🇰🇷
+  {name:'Son Heung-min',team:'South Korea',flag:'🇰🇷'},{name:'Hwang Hee-chan',team:'South Korea',flag:'🇰🇷'},{name:'Cho Gue-sung',team:'South Korea',flag:'🇰🇷'},
+  // Spain 🇪🇸
+  {name:'Lamine Yamal',team:'Spain',flag:'🇪🇸'},{name:'Álvaro Morata',team:'Spain',flag:'🇪🇸'},{name:'Nico Williams',team:'Spain',flag:'🇪🇸'},{name:'Mikel Oyarzabal',team:'Spain',flag:'🇪🇸'},
+  // Sweden 🇸🇪
+  {name:'Alexander Isak',team:'Sweden',flag:'🇸🇪'},{name:'Viktor Gyökeres',team:'Sweden',flag:'🇸🇪'},{name:'Dejan Kulusevski',team:'Sweden',flag:'🇸🇪'},
+  // Switzerland 🇨🇭
+  {name:'Breel Embolo',team:'Switzerland',flag:'🇨🇭'},{name:'Xherdan Shaqiri',team:'Switzerland',flag:'🇨🇭'},{name:'Zeki Amdouni',team:'Switzerland',flag:'🇨🇭'},
+  // Tunisia 🇹🇳
+  {name:'Youssef Msakni',team:'Tunisia',flag:'🇹🇳'},{name:'Hannibal Mejbri',team:'Tunisia',flag:'🇹🇳'},{name:'Sayfallah Ltaief',team:'Tunisia',flag:'🇹🇳'},
+  // Turkey 🇹🇷
+  {name:'Arda Güler',team:'Türkiye',flag:'🇹🇷'},{name:'Kerem Aktürkoğlu',team:'Türkiye',flag:'🇹🇷'},{name:'Cenk Tosun',team:'Türkiye',flag:'🇹🇷'},
+  // Uruguay 🇺🇾
+  {name:'Darwin Núñez',team:'Uruguay',flag:'🇺🇾'},{name:'Facundo Pellistri',team:'Uruguay',flag:'🇺🇾'},{name:'Brian Rodríguez',team:'Uruguay',flag:'🇺🇾'},
+  // USA 🇺🇸
+  {name:'Christian Pulisic',team:'USA',flag:'🇺🇸'},{name:'Folarin Balogun',team:'USA',flag:'🇺🇸'},{name:'Gio Reyna',team:'USA',flag:'🇺🇸'},{name:'Timothy Weah',team:'USA',flag:'🇺🇸'},
+  // Uzbekistan 🇺🇿
+  {name:'Eldor Shomurodov',team:'Uzbekistan',flag:'🇺🇿'},{name:'Abbosbek Fayzullaev',team:'Uzbekistan',flag:'🇺🇿'},
+  // Cabo Verde 🇨🇻
+  {name:'Gilson Benchimol',team:'Cabo Verde',flag:'🇨🇻'},{name:'Dailon Livramento',team:'Cabo Verde',flag:'🇨🇻'},
+  // Curaçao 🇨🇼
+  {name:'Cuco Martina',team:'Curaçao',flag:'🇨🇼'},{name:'Leandro Bacuna',team:'Curaçao',flag:'🇨🇼'},
+  // Haiti 🇭🇹
+  {name:'Frantzdy Pierrot',team:'Haiti',flag:'🇭🇹'},{name:'Duckens Nazon',team:'Haiti',flag:'🇭🇹'},
+  // Iraq 🇮🇶
+  {name:'Aymen Hussein',team:'Iraq',flag:'🇮🇶'},{name:'Mohannad Ali',team:'Iraq',flag:'🇮🇶'},
+  // South Africa 🇿🇦
+  {name:'Percy Tau',team:'South Africa',flag:'🇿🇦'},{name:'Lyle Foster',team:'South Africa',flag:'🇿🇦'},{name:'Bongokuhle Hlongwane',team:'South Africa',flag:'🇿🇦'},
 ];
 const KO_ROUNDS=[{id:'r32',label:'ラウンド32',matches:16},{id:'r16',label:'ラウンド16',matches:8},{id:'qf',label:'準々決勝',matches:4},{id:'sf',label:'準決勝',matches:2},{id:'f',label:'決勝',matches:1}];
 
@@ -666,13 +763,28 @@ async function setKoPick(round,matchId,winner){
 // ── SCORER ──
 function renderScorer(){
   const myPick=scorerPicks.find(p=>p.user_id===currentUser?.id&&p.player_name);
-  document.getElementById('scorer-grid').innerHTML=TOP_SCORERS.map(s=>`<button class="scorer-btn${myPick?.player_name===s.name?' selected':''}" onclick="setScorerPick('${s.name}','${s.team}')"><span class="s-flag">${s.flag}</span><span class="s-name">${s.name}</span><span class="s-team">${s.team}</span></button>`).join('');
+  // チーム別にグループ化
+  const byTeam={};
+  TOP_SCORERS.forEach(s=>{
+    if(!byTeam[s.team])byTeam[s.team]=[];
+    byTeam[s.team].push(s);
+  });
+  let html='';
+  Object.entries(byTeam).forEach(([team,players])=>{
+    html+=`<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;letter-spacing:.5px">${FLAGS[team]||''} ${team}</div><div class="scorer-grid">`;
+    players.forEach(s=>{
+      html+=`<button class="scorer-btn${myPick?.player_name===s.name?' selected':''}" onclick="setScorerPick('${s.name.replace(/'/g,"\\'")}','${s.team}')"><span class="s-flag">${s.flag}</span><span class="s-name">${s.name}</span></button>`;
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('scorer-grid').innerHTML=html;
+
   const counts={};TOP_SCORERS.forEach(s=>counts[s.name]=0);
   scorerPicks.filter(p=>p.player_name).forEach(p=>{counts[p.player_name]=(counts[p.player_name]||0)+1;});
   const total=scorerPicks.filter(p=>p.player_name).length;
   const sorted=Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   if(!sorted.length){document.getElementById('scorer-summary').innerHTML='<div class="empty">まだ誰も予想していません</div>';return;}
-  document.getElementById('scorer-summary').innerHTML=sorted.map(([name,c])=>{const s=TOP_SCORERS.find(x=>x.name===name);const pct=Math.round(c/Math.max(total,1)*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${s?.flag||''} ${name}</div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
+  document.getElementById('scorer-summary').innerHTML=sorted.map(([name,c])=>{const s=TOP_SCORERS.find(x=>x.name===name);const pct=Math.round(c/Math.max(total,1)*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${s?.flag||''} ${name} <span style="font-size:10px;color:var(--text3)">${s?.team||''}</span></div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
 }
 async function setScorerPick(player,team){
   if(!currentUser)return;
@@ -791,7 +903,30 @@ function initSwipe(){
     else if(dx>0&&currentSectionIdx>0)showSection(SECTIONS[currentSectionIdx-1],navBtns[currentSectionIdx-1]);
   },{passive:true});
 }
-function openMenu(){document.getElementById('menu-overlay').classList.add('show');}
+function openMenu(){
+  document.getElementById('menu-overlay').classList.add('show');
+  // 現在の表示名をinputにセット
+  const input=document.getElementById('new-display-name');
+  if(input&&currentProfile)input.value=currentProfile.display_name;
+  document.getElementById('name-edit-area').style.display='none';
+}
+function toggleNameEdit(){
+  const area=document.getElementById('name-edit-area');
+  area.style.display=area.style.display==='none'?'block':'none';
+}
+async function saveDisplayName(){
+  const name=document.getElementById('new-display-name').value.trim();
+  if(!name){showToast('表示名を入力してください');return;}
+  if(name===currentProfile?.display_name){showToast('同じ表示名です');return;}
+  await sb.from('profiles').update({display_name:name}).eq('id',currentUser.id);
+  currentProfile.display_name=name;
+  document.getElementById('user-avatar').textContent=name.slice(0,2);
+  document.getElementById('menu-name').textContent=name+(currentProfile.is_admin?' 👑':'');
+  document.getElementById('name-edit-area').style.display='none';
+  showToast(`表示名を「${name}」に変更しました ✓`);
+  closeMenu({target:document.getElementById('menu-overlay')});
+  renderRanking();
+}
 function closeMenu(e){if(e.target===document.getElementById('menu-overlay'))document.getElementById('menu-overlay').classList.remove('show');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
 </script>
