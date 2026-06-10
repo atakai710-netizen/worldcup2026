@@ -1,0 +1,25 @@
+{
+  "name": "WC2026 予想",
+  "short_name": "WC2026",
+  "description": "🏆定例会🏆 ワールドカップ予想アプリ",
+  "start_url": "/worldcup2026/",
+  "scope": "/worldcup2026/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0F6E56",
+  "theme_color": "#1D9E75",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
