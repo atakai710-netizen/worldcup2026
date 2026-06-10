@@ -1049,6 +1049,20 @@ function setStandingsGroup(g){standingsGroup=g;renderStandingsGroupTabs();render
 function renderStandings(){
   renderStandingsGroupTabs();
   renderStandingsTable();
+  initStandingsSwipe();
+}
+function initStandingsSwipe(){
+  const el=document.getElementById('standings-table');
+  if(!el||el._si)return;el._si=true;
+  const gk=Object.keys(GROUPS);let sx=0,sy=0;
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
+  el.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+    if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy))return;
+    const idx=gk.indexOf(standingsGroup);
+    if(dx<0&&idx<gk.length-1)setStandingsGroup(gk[idx+1]);
+    else if(dx>0&&idx>0)setStandingsGroup(gk[idx-1]);
+  },{passive:true});
 }
 function renderStandingsTable(){
   const teams=GROUPS[standingsGroup];
@@ -1462,10 +1476,9 @@ function initSwipe(){
     if(Math.abs(dx)<80)return;
     if(Math.abs(dx)<Math.abs(dy)*1.5)return;
     if(Math.abs(dx)/dt<0.4)return;
-    // GSページではグループ切り替えが優先（遅いスワイプはグループへ）
-    if(SECTIONS[currentSectionIdx]==='schedule'){
-      // 速いスワイプ（0.7px/ms以上）のみページ移動
-      if(Math.abs(dx)/dt<0.7)return;
+    // GSページではグループ切り替えが優先（速いスワイプのみページ移動）
+    if(SECTIONS[currentSectionIdx]==='schedule'||SECTIONS[currentSectionIdx]==='standings'){
+      if(Math.abs(dx)/dt<0.6)return;
     }
     const navBtns=document.querySelectorAll('.nav-item');
     if(dx<0&&currentSectionIdx<SECTIONS.length-1)showSection(SECTIONS[currentSectionIdx+1],navBtns[currentSectionIdx+1]);
