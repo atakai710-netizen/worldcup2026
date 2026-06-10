@@ -323,6 +323,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
           <div class="card">
             <div class="card-title">試合結果入力 <span class="badge-admin">管理者</span></div>
             <div class="admin-note">スコアを入力→保存で勝敗自動判定。再タップで解除。</div>
+            <button onclick="manualSync()" style="width:100%;height:42px;background:linear-gradient(135deg,#1976D2,#1565C0);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px">
+              🔄 試合結果を自動取得する
+            </button>
+            <div style="font-size:11px;color:var(--text3);margin-bottom:10px;text-align:center">終了した試合のスコアを自動で取得・反映します</div>
             <div class="group-scroll" id="result-group-tabs"></div>
             <div id="result-match-list"></div>
           </div>
@@ -576,10 +580,80 @@ async function loadMyPredictions(){
 }
 async function loadAllProfiles(){const{data}=await sb.from('profiles').select('*');allProfiles=data||[];}
 async function loadAllPredictions(){const{data}=await sb.from('predictions').select('*');allPredictions=data||[];}
-async function loadResults(){
+// ── 試合結果 自動同期 ──
+const API_TEAM_MAP={
+  'Mexico':'Mexico','South Africa':'South Africa','South Korea':'South Korea','Czech Republic':'Czech Republic',
+  'Canada':'Canada','Bosnia & Herzegovina':'Bosnia-Herz.','Qatar':'Qatar','Switzerland':'Switzerland',
+  'Brazil':'Brazil','Haiti':'Haiti','Morocco':'Morocco','Scotland':'Scotland',
+  'Australia':'Australia','Paraguay':'Paraguay','Turkey':'Türkiye','United States':'USA',
+  'Curaçao':'Curaçao','Ecuador':'Ecuador','Germany':'Germany',"Côte d'Ivoire":'Ivory Coast',
+  'Japan':'Japan','Netherlands':'Netherlands','Sweden':'Sweden','Tunisia':'Tunisia',
+  'Belgium':'Belgium','Egypt':'Egypt','Iran':'Iran','New Zealand':'New Zealand',
+  'Cape Verde':'Cabo Verde','Saudi Arabia':'Saudi Arabia','Spain':'Spain','Uruguay':'Uruguay',
+  'France':'France','Iraq':'Iraq','Norway':'Norway','Senegal':'Senegal',
+  'Algeria':'Algeria','Argentina':'Argentina','Austria':'Austria','Jordan':'Jordan',
+  'Colombia':'Colombia','DR Congo':'DR Congo','Portugal':'Portugal','Uzbekistan':'Uzbekistan',
+  'Croatia':'Croatia','England':'England','Ghana':'Ghana','Panama':'Panama',
+  'Cabo Verde':'Cabo Verde','Ivory Coast':'Ivory Coast','DR Congo':'DR Congo',
+};
+
+let lastAutoSync=0;
+async function autoSyncResults(){
+  if(!currentUser||!currentProfile?.is_admin)return;
+  const now=Date.now();
+  if(now-lastAutoSync<300000)return; // 5分に1回
+  lastAutoSync=now;
+  try{
+    const res=await fetch('https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json');
+    const data=await res.json();
+    const matches=data.matches||[];
+    let updated=0;
+    for(const m of matches){
+      if(!m.score)continue;
+      // チーム名マッピング
+      const home=API_TEAM_MAP[m.team1]||m.team1;
+      const away=API_TEAM_MAP[m.team2]||m.team2;
+      // アプリのmatch_idを特定
+      const appMatch=ALL_MATCHES.find(am=>am.home===home&&am.away===away);
+      if(!appMatch)continue;
+      // スコアパース (例: "2:1" or "1-0")
+      const scoreStr=typeof m.score==='object'?`${m.score.ft[0]}:${m.score.ft[1]}`:String(m.score);
+      const parts=scoreStr.split(/[:\-]/);
+      if(parts.length<2)continue;
+      const hs=parseInt(parts[0]);const as=parseInt(parts[1]);
+      if(isNaN(hs)||isNaN(as))continue;
+      const result=hs>as?'W':hs<as?'L':'D';
+      // すでに同じデータがあればスキップ
+      const existing=allResults[appMatch.id];
+      if(existing?.home_score===hs&&existing?.away_score===as)continue;
+      // Supabaseに保存
+      allResults[appMatch.id]={result,home_score:hs,away_score:as};
+      if(existing){
+        await sb.from('match_results').update({result,home_score:hs,away_score:as}).eq('match_id',appMatch.id);
+      } else {
+        await sb.from('match_results').insert({match_id:appMatch.id,result,home_score:hs,away_score:as,entered_by:currentUser.id});
+      }
+      updated++;
+    }
+    if(updated>0){
+      renderMatchList();renderRanking();renderStandingsTable();
+      showToast(`🔄 ${updated}試合の結果を自動同期しました`);
+    }
+  } catch(e){console.error('Auto sync error:',e);}
+}
+
+async function manualSync(){
+  if(!currentProfile?.is_admin)return;
+  lastAutoSync=0; // タイムリミットをリセットして強制実行
+  showToast('🔄 同期中...');
+  await autoSyncResults();
+  renderResultMatches();
+}
   const{data}=await sb.from('match_results').select('*');
   allResults={};
   (data||[]).forEach(r=>{allResults[r.match_id]={result:r.result,home_score:r.home_score,away_score:r.away_score};});
+  // ロード後に自動同期チェック（管理者のみ）
+  if(currentProfile?.is_admin)autoSyncResults();
 }
 async function loadChampPicks(){const{data}=await sb.from('champion_picks').select('*');champPicks=data||[];}
 async function loadScorerPicks(){const{data}=await sb.from('top_scorer_picks').select('*');scorerPicks=data||[];}
