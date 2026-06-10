@@ -8,6 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="WC2026予想">
 <meta name="theme-color" content="#1565C0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.png">
 <title>⚽ WC2026 予想</title>
@@ -652,6 +655,14 @@ function initSwipe(){
 function openMenu(){document.getElementById('menu-overlay').classList.add('show');}
 function closeMenu(e){if(e.target===document.getElementById('menu-overlay'))document.getElementById('menu-overlay').classList.remove('show');}
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+
+// ページが前面に戻った時に最新データを再取得
+document.addEventListener('visibilitychange',async()=>{
+  if(document.visibilityState==='visible'&&currentUser){
+    await loadMyPredictions();
+    renderMatchList();
+  }
+});
 </script>
 </body>
 </html>
