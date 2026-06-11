@@ -238,6 +238,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .bchamp-trophy{font-size:22px;line-height:1}
 .bchamp-label{font-size:8px;color:rgba(255,255,255,.4);margin-top:2px}
 .ko-match-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px;margin-bottom:8px}
+/* COMMENTS */
+.comment-item{padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06);display:flex;gap:10px}
+.comment-item:last-child{border-bottom:none}
+.comment-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.comment-body{flex:1;min-width:0}
+.comment-header{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.comment-name{font-size:12px;font-weight:700;color:var(--text)}
+.comment-time{font-size:10px;color:var(--text3)}
+.comment-text{font-size:13px;color:var(--text2);line-height:1.5;word-break:break-word}
+.comment-del{background:none;border:none;color:var(--text3);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;flex-shrink:0}
+.comment-del:hover{color:#ff8a80;background:rgba(229,57,53,.2)}
+.user-manage-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.user-manage-item:last-child{border-bottom:none}
+.del-user-btn{margin-left:auto;padding:4px 10px;font-size:11px;font-weight:600;background:rgba(229,57,53,.2);border:1px solid var(--red);border-radius:6px;color:#ff8a80;cursor:pointer}
 </style>
 </head>
 <body>
@@ -376,6 +390,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
         </div>
       </div>
 
+      <!-- 談話室 -->
+      <div class="content" id="sec-comments">
+        <div class="card">
+          <div class="card-title">💬 談話室</div>
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input type="text" id="comment-input" class="form-input" placeholder="コメントを入力..." style="flex:1;height:40px;font-size:13px" maxlength="200">
+            <button onclick="postComment()" style="height:40px;padding:0 14px;background:linear-gradient(135deg,#1976D2,#1565C0);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">投稿</button>
+          </div>
+          <div id="comments-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+      </div>
+
+  </div>
   </div>
 
   <nav class="bottom-nav">
@@ -383,6 +410,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
     <button class="nav-item" onclick="showSection('predict',this)"><span class="nav-icon">🎯</span><span>各予想</span></button>
     <button class="nav-item" onclick="showSection('standings',this)"><span class="nav-icon">📋</span><span>順位表</span></button>
     <button class="nav-item" onclick="showSection('bracket',this)"><span class="nav-icon">🏆</span><span>KO</span></button>
+    <button class="nav-item" onclick="showSection('comments',this)"><span class="nav-icon">💬</span><span>談話室</span></button>
     <button class="nav-item" onclick="showSection('ranking',this)"><span class="nav-icon">🥇</span><span>集計</span></button>
   </nav>
 </div>
@@ -401,6 +429,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
         <input type="text" id="new-display-name" class="form-input" placeholder="新しい表示名" style="flex:1;height:40px;font-size:14px">
         <button onclick="saveDisplayName()" style="height:40px;padding:0 16px;background:var(--blue2);border:none;border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">保存</button>
       </div>
+    </div>
+    <div id="admin-user-menu" style="display:none">
+      <div class="menu-item" onclick="toggleUserList()">
+        <span class="menu-item-icon">👥</span>ユーザー管理
+      </div>
+      <div id="user-manage-list" style="display:none;padding:8px 0 12px"></div>
     </div>
     <div class="menu-item" onclick="logout()"><span class="menu-item-icon">🚪</span>ログアウト</div>
   </div>
@@ -685,10 +719,10 @@ function teamName(t){return TEAM_JA[t]||t;}
 function playerName(n){return PLAYER_JA[n]||n;}
 
 let currentUser=null,currentProfile=null,appInitialized=false;
-let myPredictions={},allPredictions=[],allProfiles=[],allResults={},champPicks=[],scorerPicks=[],groupAdvancePicks=[],knockoutPicks=[],knockoutResults=[];
+let myPredictions={},allPredictions=[],allProfiles=[],allResults={},champPicks=[],scorerPicks=[],groupAdvancePicks=[],knockoutPicks=[],knockoutResults=[],comments=[];
 let scheduleGroup='A',oddsGroup='A',resultGroup='A',currentPredictTab='champion',koRound='r32';
 let currentSectionIdx=0;
-const SECTIONS=['schedule','predict','standings','bracket','ranking'];
+const SECTIONS=['schedule','predict','standings','bracket','comments','ranking'];
 
 // ── AUTH ──
 sb.auth.getSession().then(async({data:{session}})=>{
@@ -736,6 +770,7 @@ async function loadProfile(){
     if(data.is_admin){
       document.getElementById('admin-result-section').style.display='block';
       document.getElementById('admin-ko-section').style.display='block';
+      document.getElementById('admin-user-menu').style.display='block';
     }
   }
 }
@@ -759,11 +794,12 @@ function showApp(){
   });
   document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===0));
   initSwipe();
+  subscribeComments();
 }
 
 // ── DATA ──
 async function loadAll(){
-  await Promise.all([loadMyPredictions(),loadAllProfiles(),loadAllPredictions(),loadResults(),loadChampPicks(),loadScorerPicks(),loadGroupAdvancePicks(),loadKnockoutPicks(),loadKnockoutResults()]);
+  await Promise.all([loadMyPredictions(),loadAllProfiles(),loadAllPredictions(),loadResults(),loadChampPicks(),loadScorerPicks(),loadGroupAdvancePicks(),loadKnockoutPicks(),loadKnockoutResults(),loadComments()]);
   renderScheduleGroupTabs();
   renderMatchList();
   renderStandingsGroupTabs();
@@ -981,8 +1017,9 @@ document.addEventListener('visibilitychange',async()=>{
 // ── PREDICT TABS ──
 function setPredictTab(tab,btn){
   currentPredictTab=tab;
+  currentPredictIdx=PREDICT_TABS.indexOf(tab);
   document.querySelectorAll('.stab').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+  if(btn)btn.classList.add('active');
   ['champion','group','knockout','scorer'].forEach(t=>{
     document.getElementById(`predict-${t}`).style.display=t===tab?'':'none';
   });
@@ -1141,13 +1178,16 @@ function renderStandings(){
   initStandingsSwipe();
 }
 function initStandingsSwipe(){
-  const el=document.getElementById('standings-table');
+  const el=document.getElementById('sec-standings');
   if(!el||el._si)return;el._si=true;
   const gk=Object.keys(GROUPS);let sx=0,sy=0;
   el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;},{passive:true});
   el.addEventListener('touchend',e=>{
     const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+    const dt=e.timeStamp-(e.timeStamp-200);
     if(Math.abs(dx)<40||Math.abs(dx)<Math.abs(dy))return;
+    // 速い大きいスワイプはページ移動に任せる
+    if(Math.abs(dx)>120)return;
     const idx=gk.indexOf(standingsGroup);
     if(dx<0&&idx<gk.length-1)setStandingsGroup(gk[idx+1]);
     else if(dx>0&&idx>0)setStandingsGroup(gk[idx-1]);
@@ -1541,9 +1581,10 @@ function showSection(name,btn){
     if(el)el.classList.toggle('active',s===name);
   });
   document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===idx));
-  if(name==='predict')renderChampion();
-  if(name==='standings')renderStandings();
+  if(name==='predict'){renderChampion();initPredictSwipe();}
+  if(name==='standings'){renderStandings();}
   if(name==='bracket')renderBracket();
+  if(name==='comments')renderComments();
   if(name==='odds')renderOdds();
   if(name==='ranking')renderRanking();
 }
@@ -1589,12 +1630,142 @@ function initGroupSwipe(){
     else if(dx>0&&idx>0)setScheduleGroup(gk[idx-1]);
   },{passive:true});
 }
+// ── 各予想タブ スワイプ ──
+const PREDICT_TABS=['champion','group','knockout','scorer'];
+let currentPredictIdx=0;
+function initPredictSwipe(){
+  const el=document.getElementById('sec-predict');
+  if(!el||el._si)return;el._si=true;
+  let sx=0,sy=0,st=0;
+  el.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY;st=Date.now();},{passive:true});
+  el.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;
+    const dt=Date.now()-st;
+    if(e.target.closest('.tab-scroll'))return;
+    if(Math.abs(dx)<50||Math.abs(dx)<Math.abs(dy))return;
+    if(Math.abs(dx)/dt<0.3)return;
+    // 速いスワイプはページ移動に任せる
+    if(Math.abs(dx)/dt>0.7&&Math.abs(dx)>120)return;
+    if(dx<0&&currentPredictIdx<PREDICT_TABS.length-1){
+      currentPredictIdx++;
+    } else if(dx>0&&currentPredictIdx>0){
+      currentPredictIdx--;
+    } else return;
+    const tab=PREDICT_TABS[currentPredictIdx];
+    const btn=document.querySelectorAll('.stab')[currentPredictIdx];
+    if(btn)setPredictTab(tab,btn);
+  },{passive:true});
+}
+
+// ── COMMENTS ──
+async function loadComments(){
+  const{data}=await sb.from('comments').select('*,profiles(display_name)').order('created_at',{ascending:false}).limit(100);
+  comments=data||[];
+}
+function renderComments(){
+  const el=document.getElementById('comments-list');if(!el)return;
+  if(!comments.length){el.innerHTML='<div class="empty">まだコメントがありません。最初の一言をどうぞ！</div>';return;}
+  const COLORS=['#1976D2','#e53935','#7c4dff','#fb8c00','#00897b','#d81b60'];
+  el.innerHTML=comments.map((c,i)=>{
+    const name=c.profiles?.display_name||'?';
+    const col=COLORS[allProfiles.findIndex(p=>p.id===c.user_id)%COLORS.length]||COLORS[0];
+    const time=new Date(c.created_at);
+    const timeStr=`${time.getMonth()+1}/${time.getDate()} ${time.getHours()}:${String(time.getMinutes()).padStart(2,'0')}`;
+    const canDel=c.user_id===currentUser?.id||currentProfile?.is_admin;
+    return`<div class="comment-item">
+      <div class="comment-avatar" style="background:${col}33;color:${col}">${name.slice(0,2)}</div>
+      <div class="comment-body">
+        <div class="comment-header">
+          <span class="comment-name">${name}</span>
+          <span class="comment-time">${timeStr}</span>
+        </div>
+        <div class="comment-text">${c.content.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      </div>
+      ${canDel?`<button class="comment-del" onclick="deleteComment('${c.id}')">🗑</button>`:''}
+    </div>`;
+  }).join('');
+}
+async function postComment(){
+  if(!currentUser)return;
+  const input=document.getElementById('comment-input');
+  const content=input.value.trim();
+  if(!content){showToast('コメントを入力してください');return;}
+  if(content.length>200){showToast('200文字以内で入力してください');return;}
+  await sb.from('comments').insert({user_id:currentUser.id,content});
+  input.value='';
+  await loadComments();
+  renderComments();
+  showToast('投稿しました！');
+}
+async function deleteComment(id){
+  if(!confirm('このコメントを削除しますか？'))return;
+  await sb.from('comments').delete().eq('id',id);
+  await loadComments();
+  renderComments();
+  showToast('削除しました');
+}
+
+// ── ユーザー管理（管理者） ──
+function toggleUserList(){
+  const el=document.getElementById('user-manage-list');
+  if(el.style.display==='none'){
+    el.style.display='block';
+    renderUserManageList();
+  } else {
+    el.style.display='none';
+  }
+}
+function renderUserManageList(){
+  const el=document.getElementById('user-manage-list');if(!el)return;
+  const others=allProfiles.filter(p=>p.id!==currentUser?.id);
+  if(!others.length){el.innerHTML='<div style="font-size:12px;color:var(--text3)">他のユーザーはいません</div>';return;}
+  const COLORS=['#1976D2','#e53935','#7c4dff','#fb8c00','#00897b','#d81b60'];
+  el.innerHTML=others.map((p,i)=>`
+    <div class="user-manage-item">
+      <div class="comment-avatar" style="background:${COLORS[i%COLORS.length]}33;color:${COLORS[i%COLORS.length]};width:28px;height:28px;font-size:10px">${p.display_name.slice(0,2)}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${p.display_name}${p.is_admin?' 👑':''}</div>
+        <div style="font-size:10px;color:var(--text3)">${p.id.slice(0,8)}...</div>
+      </div>
+      <button class="del-user-btn" onclick="deleteUser('${p.id}','${p.display_name}')">削除</button>
+    </div>
+  `).join('');
+}
+async function deleteUser(userId,name){
+  if(!currentProfile?.is_admin)return;
+  if(!confirm(`「${name}」のアカウントを削除しますか？\n※予想データも全て削除されます`))return;
+  // 関連データを削除
+  await Promise.all([
+    sb.from('predictions').delete().eq('user_id',userId),
+    sb.from('champion_picks').delete().eq('user_id',userId),
+    sb.from('top_scorer_picks').delete().eq('user_id',userId),
+    sb.from('group_advance_picks').delete().eq('user_id',userId),
+    sb.from('knockout_picks').delete().eq('user_id',userId),
+    sb.from('comments').delete().eq('user_id',userId),
+    sb.from('profiles').delete().eq('id',userId),
+  ]);
+  // auth userの削除はService Role Keyが必要なためprofileのみ削除
+  await loadAllProfiles();
+  renderUserManageList();
+  renderRanking();
+  showToast(`${name} を削除しました`);
+  closeMenu({target:document.getElementById('menu-overlay')});
+}
+
+// リアルタイム：コメント自動更新
+function subscribeComments(){
+  sb.channel('comments').on('postgres_changes',{event:'*',schema:'public',table:'comments'},async()=>{
+    await loadComments();
+    if(SECTIONS[currentSectionIdx]==='comments')renderComments();
+  }).subscribe();
+}
+
 function openMenu(){
   document.getElementById('menu-overlay').classList.add('show');
-  // 現在の表示名をinputにセット
   const input=document.getElementById('new-display-name');
   if(input&&currentProfile)input.value=currentProfile.display_name;
   document.getElementById('name-edit-area').style.display='none';
+  document.getElementById('user-manage-list').style.display='none';
 }
 function toggleNameEdit(){
   const area=document.getElementById('name-edit-area');
