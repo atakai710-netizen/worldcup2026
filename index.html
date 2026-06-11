@@ -615,6 +615,75 @@ function genMatches(){
 }
 const ALL_MATCHES=genMatches();
 
+// 日本語チーム名
+const TEAM_JA={
+  'Mexico':'メキシコ','South Africa':'南アフリカ','South Korea':'韓国','Czech Republic':'チェコ',
+  'Canada':'カナダ','Bosnia-Herz.':'ボスニア・ヘルツェゴビナ','Qatar':'カタール','Switzerland':'スイス',
+  'Brazil':'ブラジル','Haiti':'ハイチ','Morocco':'モロッコ','Scotland':'スコットランド',
+  'Australia':'オーストラリア','Paraguay':'パラグアイ','Türkiye':'トルコ','USA':'アメリカ',
+  'Curaçao':'キュラソー','Ecuador':'エクアドル','Germany':'ドイツ','Ivory Coast':'コートジボワール',
+  'Japan':'日本','Netherlands':'オランダ','Sweden':'スウェーデン','Tunisia':'チュニジア',
+  'Belgium':'ベルギー','Egypt':'エジプト','Iran':'イラン','New Zealand':'ニュージーランド',
+  'Cabo Verde':'カーボベルデ','Saudi Arabia':'サウジアラビア','Spain':'スペイン','Uruguay':'ウルグアイ',
+  'France':'フランス','Iraq':'イラク','Norway':'ノルウェー','Senegal':'セネガル',
+  'Algeria':'アルジェリア','Argentina':'アルゼンチン','Austria':'オーストリア','Jordan':'ヨルダン',
+  'Colombia':'コロンビア','DR Congo':'コンゴ民主共和国','Portugal':'ポルトガル','Uzbekistan':'ウズベキスタン',
+  'Croatia':'クロアチア','England':'イングランド','Ghana':'ガーナ','Panama':'パナマ',
+};
+
+// 日本語選手名
+const PLAYER_JA={
+  'Lionel Messi':'リオネル・メッシ','Julián Álvarez':'フリアン・アルバレス','Lautaro Martínez':'ラウタロ・マルティネス',
+  'Thiago Almada':'ティアゴ・アルマダ','Giuliano Simeone':'ジュリアーノ・シメオネ','Nico Paz':'ニコ・パス',
+  'Kylian Mbappé':'キリアン・エムバペ','Ousmane Dembélé':'ウスマン・デンベレ','Marcus Thuram':'マルクス・テュラム',
+  'Antoine Griezmann':'アントワーヌ・グリーズマン','Randal Kolo Muani':'ランダル・コロ・ムアニ',
+  'Lamine Yamal':'ラミン・ヤマル','Álvaro Morata':'アルバロ・モラタ','Pedri':'ペドリ','Nico Williams':'ニコ・ウィリアムス',
+  'Mikel Oyarzabal':'ミケル・オヤルサバル',
+  'Vinicius Jr.':'ヴィニシウス・ジュニオール','Neymar Jr':'ネイマール','Raphinha':'ラフィーニャ',
+  'Endrick':'エンドリック','Gabriel Martinelli':'ガブリエル・マルティネッリ','Matheus Cunha':'マテウス・クーニャ',
+  'Florian Wirtz':'フロリアン・ヴィルツ','Jamal Musiala':'ジャマル・ムシアラ','Kai Havertz':'カイ・ハベルツ',
+  'Leroy Sané':'レロイ・サネ','Serge Gnabry':'セルジュ・ニャブリ',
+  'Harry Kane':'ハリー・ケイン','Bukayo Saka':'ブカヨ・サカ','Phil Foden':'フィル・フォーデン',
+  'Jude Bellingham':'ジュード・ベリンガム','Marcus Rashford':'マーカス・ラッシュフォード',
+  'Cristiano Ronaldo':'クリスティアーノ・ロナウド','Rafael Leão':'ラファエル・レオン',
+  'Gonçalo Ramos':'ゴンサロ・ラモス','Pedro Neto':'ペドロ・ネト','Bernardo Silva':'ベルナルド・シルバ',
+  'Erling Haaland':'エーリング・ハーランド','Martin Ødegaard':'マルティン・ウーデゴール','Alexander Sørloth':'アレクサンデル・セールロト',
+  'Romelu Lukaku':'ロメル・ルカク','Leandro Trossard':'レアンドロ・トロサール','Jeremy Doku':'ジェレミー・ドク',
+  'Dodi Lukebakio':'ドジ・ルケバキオ','Charles De Ketelaere':'シャルル・デ・ケテラーレ',
+  'Memphis Depay':'メンフィス・デパイ','Cody Gakpo':'コーディ・ガクポ','Donyell Malen':'ドニエル・マレン','Wout Weghorst':'ワウト・ウェホルスト',
+  'Takefusa Kubo':'久保建英','Kaoru Mitoma':'三笘薫','Ayase Ueda':'上田綺世','Junya Ito':'伊東純也','Ritsu Doan':'堂安律',
+  'Son Heung-min':'ソン・フンミン','Hwang Hee-chan':'ファン・ヒチャン','Cho Gue-sung':'チョ・ギュソン',
+  'Mohamed Salah':'モハメド・サラー','Omar Marmoush':'オマル・マルムーシュ','Mostafa Mohamed':'モスタファ・モハメド',
+  'Sadio Mané':'サディオ・マネ','Ismaïla Sarr':'イスマイラ・サール','Nicolas Jackson':'ニコラス・ジャクソン',
+  'Darwin Núñez':'ダーウィン・ヌニェス','Facundo Pellistri':'ファクンド・ペリストリ','Brian Rodríguez':'ブライアン・ロドリゲス',
+  'Christian Pulisic':'クリスチャン・プリシッチ','Folarin Balogun':'フォラリン・バログン','Gio Reyna':'ジョバンニ・レイナ','Timothy Weah':'ティモシー・ウェア',
+  'Santiago Giménez':'サンティアゴ・ヒメネス','Hirving Lozano':'イルビング・ロサノ','Raúl Jiménez':'ラウル・ヒメネス','Henry Martín':'エンリケ・マルティン',
+  'Youssef En-Nesyri':'ユーセフ・エン・ネシリ','Hakim Ziyech':'ハキム・ジエク','Sofiane Boufal':'ソフィアン・ブファル','Ayoub El Kaabi':'アユーブ・エル・カービ',
+  'Luis Díaz':'ルイス・ディアス','Jhon Córdoba':'ジョン・コルドバ','Cucho Hernandez':'クチョ・エルナンデス',
+  'Jonathan David':'ジョナサン・デイビッド','Tajon Buchanan':'タジョン・ブキャナン','Alphonso Davies':'アルフォンソ・デイビス','Cyle Larin':'サイル・ラリン',
+  'Alexander Isak':'アレクサンダー・イサク','Viktor Gyökeres':'ビクトル・ギョークレス','Dejan Kulusevski':'デヤン・クルゼフスキ',
+  'Mehdi Taremi':'メフディ・タレミ','Sardar Azmoun':'サルダル・アズムン','Alireza Jahanbakhsh':'アリレザ・ジャハンバフシュ',
+  'Riyad Mahrez':'リヤド・マフレズ','Amine Gouiri':'アミン・グイリ','Mohamed Amoura':'モハメド・アムラ',
+  'Breel Embolo':'ブレール・エンボロ','Xherdan Shaqiri':'シェルダン・シャキリ','Zeki Amdouni':'ゼキ・アムドゥニ',
+  'Andrej Kramarić':'アンドレイ・クラマリッチ','Ivan Perišić':'イバン・ペリシッチ',
+  'Patrik Schick':'パトリク・シック','Adam Hložek':'アダム・フロゼク',
+  'Yoane Wissa':'ヨアネ・ウィサ','Cédric Bakambu':'セドリック・バカンブ','Simon Banza':'シモン・バンザ',
+  'Amad Diallo':'アマド・ディアロ','Simon Adingra':'シモン・アディングラ',
+  'Mohammed Kudus':'モハンマド・クドゥス','Jordan Ayew':'ジョルダン・アユー','Antoine Semenyo':'アントワーヌ・セメニョ',
+  'Enner Valencia':'エンネル・バレンシア','Percy Tau':'パーシー・タウ','Lyle Foster':'ライル・フォスター',
+  'Edin Džeko':'エディン・ジェコ','Ermedin Demirovic':'エルメディン・デミロビッチ',
+  'Arda Güler':'アルダ・ギュレル','Kerem Aktürkoğlu':'ケレム・アクテュルコール',
+  'Akram Afif':'アクラム・アフィフ','Almoez Ali':'アルムエズ・アリ',
+  'Salem Al-Dawsari':'サレム・アル・ドーサリ','Saleh Al-Shehri':'サレハ・アル・シェフリ',
+  'Chris Wood':'クリス・ウッド',
+  'Miguel Almirón':'ミゲル・アルミロン','Antonio Sanabria':'アントニオ・サナブリア',
+  'Lyndon Dykes':'リンドン・ダイクス',
+  'Musa Al-Taamari':'ムサ・アル・タアマリ',
+};
+
+function teamName(t){return TEAM_JA[t]||t;}
+function playerName(n){return PLAYER_JA[n]||n;}
+
 let currentUser=null,currentProfile=null,appInitialized=false;
 let myPredictions={},allPredictions=[],allProfiles=[],allResults={},champPicks=[],scorerPicks=[],groupAdvancePicks=[],knockoutPicks=[],knockoutResults=[];
 let scheduleGroup='A',oddsGroup='A',resultGroup='A',currentPredictTab='champion',koRound='r32';
@@ -841,6 +910,7 @@ function renderMatchList(){
     const hs=rData?.home_score;const as=rData?.away_score;
     const correct=res&&p===res;
     const hf=FLAGS[m.home]||'';const af=FLAGS[m.away]||'';
+    const hn=teamName(m.home);const an=teamName(m.away);
     const scoreBadge=(hs!=null&&as!=null)?`<span class="score-badge">${hs} - ${as}</span>`:`<span class="score-badge upcoming">試合前</span>`;
     const sch=MATCH_SCHEDULE[m.id];
     const locked=isMatchLocked(m.id);
@@ -848,16 +918,16 @@ function renderMatchList(){
     const lockLabel=locked?` 🔒 締切`:'';
     return`<div class="match-row"${locked?' style="opacity:.85"':''}>
       <div class="match-header">
-        <span class="team right">${hf} ${m.home}</span>
+        <span class="team right">${hf} ${hn}</span>
         ${scoreBadge}
-        <span class="team">${af} ${m.away}</span>
+        <span class="team">${af} ${an}</span>
         ${correct?`<span class="correct-mark">✓</span>`:''}
       </div>
       <div style="font-size:10px;color:${locked?'var(--red)':'var(--text3)'};margin-bottom:4px;padding-left:2px">${timeLabel}${lockLabel}</div>
       <div class="pred-row">
-        <button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>${hf} ${m.home}</button>
+        <button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>${hf} ${hn}</button>
         <button class="pred-btn${p==='D'?' sel-d':''}" onclick="setPred('${m.id}','D')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>🤝 引き分け</button>
-        <button class="pred-btn${p==='L'?' sel-l':''}" onclick="setPred('${m.id}','L')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>${af} ${m.away}</button>
+        <button class="pred-btn${p==='L'?' sel-l':''}" onclick="setPred('${m.id}','L')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>${af} ${an}</button>
       </div>
     </div>`;
   }).join('');
@@ -926,13 +996,13 @@ function setPredictTab(tab,btn){
 function renderChampion(){
   const allTeams=Object.values(GROUPS).flat();
   const myPick=champPicks.find(c=>c.user_id===currentUser?.id&&c.team_name)?.team_name||'';
-  document.getElementById('champ-grid').innerHTML=allTeams.map(t=>`<button class="champ-btn${myPick===t?' selected':''}" onclick="setChampPick('${t}')"><span class="flag">${FLAGS[t]||'🏳'}</span><span class="name">${t}</span></button>`).join('');
+  document.getElementById('champ-grid').innerHTML=allTeams.map(t=>`<button class="champ-btn${myPick===t?' selected':''}" onclick="setChampPick('${t}')"><span class="flag">${FLAGS[t]||'🏳'}</span><span class="name">${teamName(t)}</span></button>`).join('');
   const counts={};allTeams.forEach(t=>counts[t]=0);
   champPicks.filter(c=>c.team_name).forEach(c=>{counts[c.team_name]=(counts[c.team_name]||0)+1;});
   const total=champPicks.filter(c=>c.team_name).length;
   const sorted=Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   if(!sorted.length){document.getElementById('champ-summary').innerHTML='<div class="empty">まだ誰も予想していません</div>';return;}
-  document.getElementById('champ-summary').innerHTML=sorted.map(([t,c])=>{const pct=Math.round(c/Math.max(total,1)*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${FLAGS[t]||''} ${t}</div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
+  document.getElementById('champ-summary').innerHTML=sorted.map(([t,c])=>{const pct=Math.round(c/Math.max(total,1)*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${FLAGS[t]||''} ${teamName(t)}</div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
 }
 async function setChampPick(team){
   if(!currentUser)return;
@@ -952,7 +1022,7 @@ function renderGroupAdvance(){
   document.getElementById('group-advance-list').innerHTML=Object.entries(GROUPS).map(([g,teams])=>{
     const pick=myPicks.find(p=>p.group_name===g);
     const t1=pick?.team1||'',t2=pick?.team2||'';
-    return`<div class="group-card"><div class="group-card-title"><span style="background:var(--blue2);color:#fff;padding:2px 8px;border-radius:4px;font-size:11px">G${g}</span> 突破2チームを選択</div><div class="team-pick-row">${teams.map(t=>`<button class="team-pick-btn${t===t1?' sel1':t===t2?' sel2':''}" onclick="toggleGroupPick('${g}','${t}')">${FLAGS[t]||''} ${t}</button>`).join('')}</div></div>`;
+    return`<div class="group-card"><div class="group-card-title"><span style="background:var(--blue2);color:#fff;padding:2px 8px;border-radius:4px;font-size:11px">G${g}</span> 突破2チームを選択</div><div class="team-pick-row">${teams.map(t=>`<button class="team-pick-btn${t===t1?' sel1':t===t2?' sel2':''}" onclick="toggleGroupPick('${g}','${t}')">${FLAGS[t]||''} ${teamName(t)}</button>`).join('')}</div></div>`;
   }).join('');
 }
 async function toggleGroupPick(group,team){
@@ -1032,7 +1102,7 @@ function renderScorer(){
   Object.entries(byTeam).forEach(([team,players])=>{
     html+=`<div style="margin-bottom:12px"><div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:6px;letter-spacing:.5px">${FLAGS[team]||''} ${team}</div><div class="scorer-grid">`;
     players.forEach(s=>{
-      html+=`<button class="scorer-btn${myPick?.player_name===s.name?' selected':''}" onclick="setScorerPick('${s.name.replace(/'/g,"\\'")}','${s.team}')"><span class="s-flag">${s.flag}</span><span class="s-name">${s.name}</span></button>`;
+      html+=`<button class="scorer-btn${myPick?.player_name===s.name?' selected':''}" onclick="setScorerPick('${s.name.replace(/'/g,"\\'")}','${s.team}')"><span class="s-flag">${s.flag}</span><span class="s-name">${playerName(s.name)}</span><span class="s-team">${teamName(s.team)}</span></button>`;
     });
     html+='</div></div>';
   });
@@ -1043,7 +1113,7 @@ function renderScorer(){
   const total=scorerPicks.filter(p=>p.player_name).length;
   const sorted=Object.entries(counts).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   if(!sorted.length){document.getElementById('scorer-summary').innerHTML='<div class="empty">まだ誰も予想していません</div>';return;}
-  document.getElementById('scorer-summary').innerHTML=sorted.map(([name,c])=>{const s=TOP_SCORERS.find(x=>x.name===name);const pct=Math.round(c/Math.max(total,1)*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${s?.flag||''} ${name} <span style="font-size:10px;color:var(--text3)">${s?.team||''}</span></div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
+  document.getElementById('scorer-summary').innerHTML=sorted.map(([name,c])=>{const s=TOP_SCORERS.find(x=>x.name===name);const pct=Math.round(c/Math.max(total,1)*100);return`<div class="odds-item"><div style="flex:1"><div class="odds-team">${s?.flag||''} ${playerName(name)} <span style="font-size:10px;color:var(--text3)">${teamName(s?.team||'')}</span></div><div style="font-size:11px;color:var(--text3)">${c}票 (${pct}%)</div><div class="odds-bar"><div class="odds-fill" style="width:${pct}%"></div></div></div></div>`;}).join('');
 }
 async function setScorerPick(player,team){
   if(!currentUser)return;
@@ -1122,7 +1192,7 @@ function renderStandingsTable(){
       const rowClass=i<2?'st-adv':i===2?'st-pos':'';
       return`<tr class="${rowClass}">
         <td class="left" style="font-size:13px;font-weight:700;color:${i<2?'var(--blue3)':i===2?'var(--amber2)':'var(--text3)'}">${i+1}</td>
-        <td class="left"><div class="team-cell">${FLAGS[t]||''}<span style="font-size:12px">${t}</span></div></td>
+        <td class="left"><div class="team-cell">${FLAGS[t]||''}<span style="font-size:12px">${teamName(t)}</span></div></td>
         <td>${s.p}</td><td>${s.w}</td><td>${s.d}</td><td>${s.l}</td>
         <td>${s.gf}</td><td>${s.ga}</td>
         <td style="color:${gd>0?'var(--green4)':gd<0?'#ff8a80':'var(--text3)'}">${gd>0?'+':''}${gd}</td>
@@ -1225,9 +1295,9 @@ function renderBracket(){
         html+=`<div class="bmatch"><div class="btbd">勝者待ち</div><div class="bdiv"></div><div class="btbd">勝者待ち</div></div>`;
       } else {
         html+=`<div class="bmatch">
-          <div class="${homeClass}"><span class="bflag">${home?FLAGS[home]||'🏳':''}</span><span class="bname">${home||'?'}</span><span class="bscore">${hs!=null?hs:''}</span></div>
+          <div class="${homeClass}"><span class="bflag">${home?FLAGS[home]||'🏳':''}</span><span class="bname">${home?teamName(home):'?'}</span><span class="bscore">${hs!=null?hs:''}</span></div>
           <div class="bdiv"></div>
-          <div class="${awayClass}"><span class="bflag">${away?FLAGS[away]||'🏳':''}</span><span class="bname">${away||'?'}</span><span class="bscore">${as!=null?as:''}</span></div>
+          <div class="${awayClass}"><span class="bflag">${away?FLAGS[away]||'🏳':''}</span><span class="bname">${away?teamName(away):'?'}</span><span class="bscore">${as!=null?as:''}</span></div>
         </div>`;
       }
     }
@@ -1236,7 +1306,7 @@ function renderBracket(){
   // チャンピオン
   const finalRes=getKOResult('f',0);
   html+=`<div class="bround" style="justify-content:center">
-    <div class="bchamp"><div class="bchamp-trophy">🏆</div><div class="bchamp-label">${finalRes?.winner?finalRes.winner:'CHAMPION'}</div></div>
+    <div class="bchamp"><div class="bchamp-trophy">🏆</div><div class="bchamp-label">${finalRes?.winner?teamName(finalRes.winner):'CHAMPION'}</div></div>
   </div>`;
   html+='</div>';
 
@@ -1386,7 +1456,7 @@ function renderOdds(){
   champPicks.filter(c=>c.team_name).forEach(c=>{counts[c.team_name]=(counts[c.team_name]||0)+1;});
   const total=champPicks.filter(c=>c.team_name).length;
   const sorted=allTeams.filter(t=>BASE_ODDS[t]).map(t=>{let odds=BASE_ODDS[t]||99;if(total>2&&counts[t]>0)odds=Math.max(1.5,odds*(1-counts[t]/total*0.5));return{t,odds};}).sort((a,b)=>a.odds-b.odds).slice(0,16);
-  document.getElementById('odds-list').innerHTML=sorted.map(({t,odds})=>`<div class="odds-item"><div class="odds-team">${FLAGS[t]||''} ${t}</div><div class="odds-val">${odds.toFixed(1)}倍</div></div>`).join('');
+  document.getElementById('odds-list').innerHTML=sorted.map(({t,odds})=>`<div class="odds-item"><div class="odds-team">${FLAGS[t]||''} ${teamName(t)}</div><div class="odds-val">${odds.toFixed(1)}倍</div></div>`).join('');
   renderOddsGroupTabs();renderOddsMatches();
 }
 function renderOddsGroupTabs(){document.getElementById('odds-group-tabs').innerHTML=Object.keys(GROUPS).map(g=>`<button class="gtab${g===oddsGroup?' active':''}" onclick="setOddsGroup('${g}')">${g}</button>`).join('');}
@@ -1397,8 +1467,8 @@ function renderOddsMatches(){
   document.getElementById('odds-matches').innerHTML=matches.map(m=>{
     const preds=allPredictions.filter(p=>p.match_id===m.id);
     const w=preds.filter(p=>p.result==='W').length,d=preds.filter(p=>p.result==='D').length,l=preds.filter(p=>p.result==='L').length,tot=w+d+l;
-    if(!tot)return`<div class="match-row"><div style="font-size:12px;color:var(--text3)">${FLAGS[m.home]||''} ${m.home} vs ${FLAGS[m.away]||''} ${m.away} — 予想なし</div></div>`;
-    return`<div class="match-row"><div style="font-size:13px;font-weight:600;margin-bottom:4px">${FLAGS[m.home]||''} ${m.home} vs ${FLAGS[m.away]||''} ${m.away}</div><div style="display:flex;gap:6px;font-size:11px;color:var(--text3);margin-bottom:5px">${w}票 / ${d}票 / ${l}票</div><div style="display:flex;gap:5px"><span class="badge badge-green">H ${(tot/Math.max(w,.5)).toFixed(1)}倍</span><span class="badge badge-amber">引 ${(tot/Math.max(d,.5)).toFixed(1)}倍</span><span class="badge badge-red">A ${(tot/Math.max(l,.5)).toFixed(1)}倍</span></div></div>`;
+    if(!tot)return`<div class="match-row"><div style="font-size:12px;color:var(--text3)">${FLAGS[m.home]||''} ${teamName(m.home)} vs ${FLAGS[m.away]||''} ${teamName(m.away)} — 予想なし</div></div>`;
+    return`<div class="match-row"><div style="font-size:13px;font-weight:600;margin-bottom:4px">${FLAGS[m.home]||''} ${teamName(m.home)} vs ${FLAGS[m.away]||''} ${teamName(m.away)}</div><div style="display:flex;gap:6px;font-size:11px;color:var(--text3);margin-bottom:5px">${w}票 / ${d}票 / ${l}票</div><div style="display:flex;gap:5px"><span class="badge badge-green">H ${(tot/Math.max(w,.5)).toFixed(1)}倍</span><span class="badge badge-amber">引 ${(tot/Math.max(d,.5)).toFixed(1)}倍</span><span class="badge badge-red">A ${(tot/Math.max(l,.5)).toFixed(1)}倍</span></div></div>`;
   }).join('');
 }
 
@@ -1414,7 +1484,7 @@ function renderRanking(){
     return{name:p.display_name,pts,preds:preds.length,pct,col,isAdmin:p.is_admin,champ:cp?.team_name||'',scorer:sp?.player_name||''};
   }).sort((a,b)=>b.pts-a.pts||b.preds-a.preds);
   if(!scores.length){document.getElementById('ranking-list').innerHTML='<div class="empty">まだ誰も登録していません</div>';return;}
-  document.getElementById('ranking-list').innerHTML=scores.map((u,i)=>`<div class="rank-row"><div class="rank-num">${['🥇','🥈','🥉'][i]||i+1}</div><div class="rank-avatar" style="background:${u.col}33;color:${u.col}">${u.name.slice(0,2)}</div><div class="rank-info"><div class="rank-name">${u.name}${u.isAdmin?' 👑':''}</div><div class="rank-sub">${FLAGS[u.champ]||''} ${u.champ||'優勝未予想'} | ⚽${u.scorer||'得点王未予想'}</div><div class="progress-bar"><div class="progress-fill" style="width:${u.pct}%;background:${u.col}"></div></div></div><div class="rank-pts">${u.pts}pt</div></div>`).join('');
+  document.getElementById('ranking-list').innerHTML=scores.map((u,i)=>`<div class="rank-row"><div class="rank-num">${['🥇','🥈','🥉'][i]||i+1}</div><div class="rank-avatar" style="background:${u.col}33;color:${u.col}">${u.name.slice(0,2)}</div><div class="rank-info"><div class="rank-name">${u.name}${u.isAdmin?' 👑':''}</div><div class="rank-sub">${FLAGS[u.champ]||''} ${u.champ?teamName(u.champ):'優勝未予想'} | ⚽${u.scorer?playerName(u.scorer):'得点王未予想'}</div><div class="progress-bar"><div class="progress-fill" style="width:${u.pct}%;background:${u.col}"></div></div></div><div class="rank-pts">${u.pts}pt</div></div>`).join('');
   if(currentProfile?.is_admin)renderResultSection();
 }
 function renderResultSection(){
@@ -1427,7 +1497,8 @@ function renderResultMatches(){
     const rData=allResults[m.id];const r=rData?.result||'';
     const hs=rData?.home_score??'';const as=rData?.away_score??'';
     const hf=FLAGS[m.home]||'';const af=FLAGS[m.away]||'';
-    return`<div class="match-row"><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text2)">${hf} ${m.home} vs ${af} ${m.away}</div><div class="result-btns"><button class="result-btn${r==='W'?' sel-w':''}" onclick="setResult('${m.id}','W')">${hf} 勝ち</button><button class="result-btn${r==='D'?' sel-d':''}" onclick="setResult('${m.id}','D')">🤝 引分</button><button class="result-btn${r==='L'?' sel-l':''}" onclick="setResult('${m.id}','L')">${af} 勝ち</button></div><div class="score-input-row"><span style="font-size:11px;color:var(--text3);min-width:20px">${hf}</span><input class="score-input" type="number" min="0" max="20" value="${hs}" id="hs_${m.id}" placeholder="0"><span class="score-dash">-</span><input class="score-input" type="number" min="0" max="20" value="${as}" id="as_${m.id}" placeholder="0"><span style="font-size:11px;color:var(--text3);min-width:20px;text-align:right">${af}</span><button class="score-save-btn" onclick="saveScore('${m.id}','${m.home}','${m.away}')">保存</button></div></div>`;
+    const hn=teamName(m.home);const an=teamName(m.away);
+    return`<div class="match-row"><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text2)">${hf} ${hn} vs ${af} ${an}</div><div class="result-btns"><button class="result-btn${r==='W'?' sel-w':''}" onclick="setResult('${m.id}','W')">${hf} ${hn}勝ち</button><button class="result-btn${r==='D'?' sel-d':''}" onclick="setResult('${m.id}','D')">🤝 引分</button><button class="result-btn${r==='L'?' sel-l':''}" onclick="setResult('${m.id}','L')">${af} ${an}勝ち</button></div><div class="score-input-row"><span style="font-size:11px;color:var(--text3);min-width:20px">${hf}</span><input class="score-input" type="number" min="0" max="20" value="${hs}" id="hs_${m.id}" placeholder="0"><span class="score-dash">-</span><input class="score-input" type="number" min="0" max="20" value="${as}" id="as_${m.id}" placeholder="0"><span style="font-size:11px;color:var(--text3);min-width:20px;text-align:right">${af}</span><button class="score-save-btn" onclick="saveScore('${m.id}','${m.home}','${m.away}')">保存</button></div></div>`;
   }).join('');
 }
 async function setResult(matchId,result){
