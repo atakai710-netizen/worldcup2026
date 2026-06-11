@@ -793,9 +793,22 @@ async function doSignup(){
   const name=document.getElementById('signup-name').value.trim(),email=document.getElementById('signup-email').value.trim(),pass=document.getElementById('signup-pass').value;
   if(!name){document.getElementById('signup-error').textContent='表示名を入力してください';return;}
   if(pass.length<6){document.getElementById('signup-error').textContent='パスワードは6文字以上';return;}
-  const{error}=await sb.auth.signUp({email,password:pass,options:{data:{display_name:name}}});
-  if(error)document.getElementById('signup-error').textContent=error.message;
-  else showToast('登録完了！ログインしてください');
+  const btn=event.target;btn.textContent='...';btn.disabled=true;
+  const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{display_name:name}}});
+  btn.textContent='登録する';btn.disabled=false;
+  if(error){document.getElementById('signup-error').textContent=error.message;return;}
+  // 登録後に自動ログイン
+  if(data.session){
+    appInitialized=true;currentUser=data.session.user;
+    // プロフィールが作成されるまで少し待つ
+    await new Promise(r=>setTimeout(r,1000));
+    try{await loadProfile();}catch(e){}
+    showGroupScreen();
+  } else {
+    showToast('登録完了！ログインしてください');
+    switchAuthTab('login');
+    document.getElementById('login-email').value=email;
+  }
 }
 async function loadProfile(){
   const{data}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
