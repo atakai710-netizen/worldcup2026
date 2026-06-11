@@ -820,6 +820,18 @@ function initGroupSwipe(){
     else if(dx>0&&idx>0)setScheduleGroup(gk[idx-1]);
   },{passive:true});
 }
+// 試合開始時刻チェック（JST→UTC変換）
+function isMatchLocked(matchId){
+  const sch=MATCH_SCHEDULE[matchId];
+  if(!sch)return false;
+  // "6/15" "5:00" → 2026年のJST時刻
+  const[month,day]=sch.date.split('/').map(Number);
+  const[hour,min]=sch.time.split(':').map(Number);
+  // JST = UTC+9
+  const kickoffUTC=Date.UTC(2026,month-1,day,hour-9,min);
+  return Date.now()>=kickoffUTC;
+}
+
 function renderMatchList(){
   const matches=ALL_MATCHES.filter(m=>m.group===scheduleGroup);
   document.getElementById('match-list').innerHTML=matches.map(m=>{
@@ -831,19 +843,21 @@ function renderMatchList(){
     const hf=FLAGS[m.home]||'';const af=FLAGS[m.away]||'';
     const scoreBadge=(hs!=null&&as!=null)?`<span class="score-badge">${hs} - ${as}</span>`:`<span class="score-badge upcoming">試合前</span>`;
     const sch=MATCH_SCHEDULE[m.id];
-    const timeLabel=sch?`<span style="font-size:10px;color:var(--text3);margin-left:4px">${sch.date} ${sch.time} JST</span>`:'';
-    return`<div class="match-row">
+    const locked=isMatchLocked(m.id);
+    const timeLabel=sch?`📅 ${sch.date} ${sch.time} JST ／ ${sch.venue}`:'';
+    const lockLabel=locked?` 🔒 締切`:'';
+    return`<div class="match-row"${locked?' style="opacity:.85"':''}>
       <div class="match-header">
         <span class="team right">${hf} ${m.home}</span>
         ${scoreBadge}
         <span class="team">${af} ${m.away}</span>
         ${correct?`<span class="correct-mark">✓</span>`:''}
       </div>
-      <div style="font-size:10px;color:var(--text3);margin-bottom:4px;padding-left:2px">${sch?`📅 ${sch.date} ${sch.time} JST ／ ${sch.venue}`:''}</div>
+      <div style="font-size:10px;color:${locked?'var(--red)':'var(--text3)'};margin-bottom:4px;padding-left:2px">${timeLabel}${lockLabel}</div>
       <div class="pred-row">
-        <button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W')">${hf} ${m.home}</button>
-        <button class="pred-btn${p==='D'?' sel-d':''}" onclick="setPred('${m.id}','D')">🤝 引き分け</button>
-        <button class="pred-btn${p==='L'?' sel-l':''}" onclick="setPred('${m.id}','L')">${af} ${m.away}</button>
+        <button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>${hf} ${m.home}</button>
+        <button class="pred-btn${p==='D'?' sel-d':''}" onclick="setPred('${m.id}','D')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>🤝 引き分け</button>
+        <button class="pred-btn${p==='L'?' sel-l':''}" onclick="setPred('${m.id}','L')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>${af} ${m.away}</button>
       </div>
     </div>`;
   }).join('');
@@ -851,6 +865,11 @@ function renderMatchList(){
 }
 async function setPred(matchId,result){
   if(!currentUser)return;
+  // 試合開始後はロック
+  if(isMatchLocked(matchId)){
+    showToast('🔒 この試合の予想締切は終了しました');
+    return;
+  }
   const prev=myPredictions[matchId];
 
   if(prev===result){
