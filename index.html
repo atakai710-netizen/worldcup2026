@@ -1733,8 +1733,9 @@ function renderUserManageList(){
 }
 async function deleteUser(userId,name){
   if(!currentProfile?.is_admin)return;
-  if(!confirm(`「${name}」のアカウントを削除しますか？\n※予想データも全て削除されます`))return;
-  // 関連データを削除
+  if(!confirm(`「${name}」を削除しますか？\n\n①アプリ内データを削除します\n②Auth削除はSupabase管理画面で行ってください`))return;
+
+  // アプリ内データを削除
   await Promise.all([
     sb.from('predictions').delete().eq('user_id',userId),
     sb.from('champion_picks').delete().eq('user_id',userId),
@@ -1744,11 +1745,15 @@ async function deleteUser(userId,name){
     sb.from('comments').delete().eq('user_id',userId),
     sb.from('profiles').delete().eq('id',userId),
   ]);
-  // auth userの削除はService Role Keyが必要なためprofileのみ削除
+
+  // ユーザーIDをクリップボードにコピー
+  try{await navigator.clipboard.writeText(userId);}catch(e){}
+
   await loadAllProfiles();
   renderUserManageList();
   renderRanking();
-  showToast(`${name} を削除しました`);
+
+  alert(`✅ アプリ内データを削除しました\n\nAuth削除手順：\n1. SupabaseのAuthentication→Users を開く\n2. User ID「${userId.slice(0,8)}...」を検索\n3. 「Delete user」をクリック\n\n※User IDはクリップボードにコピーしました`);
   closeMenu({target:document.getElementById('menu-overlay')});
 }
 
