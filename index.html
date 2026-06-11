@@ -288,7 +288,43 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
   <div class="auth-stripe"><div style="background:#1565C0"></div><div style="background:#e53935"></div><div style="background:#2e7d32"></div></div>
 </div>
 
-<!-- APP -->
+<!-- GROUP SELECT -->
+<div id="group-screen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:500;overflow-y:auto;padding:24px 16px">
+  <div style="max-width:420px;margin:0 auto">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:40px;margin-bottom:8px">⚽</div>
+      <div style="font-size:20px;font-weight:800;color:var(--text)">グループを選択</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:4px" id="group-user-name"></div>
+    </div>
+
+    <!-- 参加中のグループ -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">参加中のグループ</div>
+      <div id="my-groups-list"><div class="loading"><div class="spinner"></div></div></div>
+    </div>
+
+    <!-- 招待コードで参加 -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">招待コードで参加</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="invite-code-input" class="form-input" placeholder="招待コードを入力" style="flex:1;height:44px;font-size:15px;text-transform:uppercase">
+        <button onclick="joinByCode()" style="height:44px;padding:0 16px;background:linear-gradient(135deg,#1976D2,#1565C0);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0">参加</button>
+      </div>
+      <div id="invite-error" style="font-size:12px;color:#ff8a80;margin-top:6px"></div>
+    </div>
+
+    <!-- 新規グループ作成 -->
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-title">新しいグループを作成</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="new-group-name" class="form-input" placeholder="グループ名（例：定例会2026）" style="flex:1;height:44px;font-size:14px">
+        <button onclick="createGroup()" style="height:44px;padding:0 16px;background:linear-gradient(135deg,#e53935,#c62828);border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;flex-shrink:0">作成</button>
+      </div>
+    </div>
+
+    <button onclick="doLogoutFromGroup()" style="width:100%;height:44px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:14px;cursor:pointer">ログアウト</button>
+  </div>
+</div>
 <div id="app-screen">
   <div class="header">
     <div class="header-title">⚽ WC2026 予想</div>
@@ -348,7 +384,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
       <div class="content" id="sec-ranking">
         <div class="card">
           <div class="card-title">仲間内ランキング</div>
-          <div style="font-size:11px;color:var(--text3);margin-bottom:10px">GS正解+3pt｜KO正解+5pt｜優勝/得点王正解+10pt</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:10px">GS正解+1pt｜KO正解+5pt｜優勝/得点王正解+10pt</div>
           <div id="ranking-list"><div class="loading"><div class="spinner"></div></div></div>
         </div>
         <div id="admin-result-section" style="display:none">
@@ -420,6 +456,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
     <div style="text-align:center;margin-bottom:16px">
       <div style="font-size:18px;font-weight:700" id="menu-name">-</div>
       <div style="font-size:13px;color:var(--text3)" id="menu-email">-</div>
+    </div>
+    <div class="menu-item" onclick="switchGroup()">
+      <span class="menu-item-icon">🔄</span>グループを切り替える
     </div>
     <div class="menu-item" onclick="toggleNameEdit()">
       <span class="menu-item-icon">✏️</span>表示名を変更
@@ -718,7 +757,7 @@ const PLAYER_JA={
 function teamName(t){return TEAM_JA[t]||t;}
 function playerName(n){return PLAYER_JA[n]||n;}
 
-let currentUser=null,currentProfile=null,appInitialized=false;
+let currentUser=null,currentProfile=null,currentGroup=null,appInitialized=false;
 let myPredictions={},allPredictions=[],allProfiles=[],allResults={},champPicks=[],scorerPicks=[],groupAdvancePicks=[],knockoutPicks=[],knockoutResults=[],comments=[];
 let scheduleGroup='A',oddsGroup='A',resultGroup='A',currentPredictTab='champion',koRound='r32';
 let currentSectionIdx=0;
@@ -729,8 +768,7 @@ sb.auth.getSession().then(async({data:{session}})=>{
   if(session&&!appInitialized){
     appInitialized=true;currentUser=session.user;
     try{await loadProfile();}catch(e){}
-    showApp();
-    await loadAll(); // データ取得完了後に描画
+    showGroupScreen();
   } else {
     showAuth();
   }
@@ -749,8 +787,7 @@ async function doLogin(){
   if(error){document.getElementById('login-error').textContent='メールアドレスまたはパスワードが正しくありません';return;}
   appInitialized=true;currentUser=data.session.user;
   try{await loadProfile();}catch(e){}
-  showApp();
-  try{await loadAll();}catch(e){}
+  showGroupScreen();
 }
 async function doSignup(){
   const name=document.getElementById('signup-name').value.trim(),email=document.getElementById('signup-email').value.trim(),pass=document.getElementById('signup-pass').value;
@@ -775,18 +812,37 @@ async function loadProfile(){
   }
 }
 async function logout(){
-  appInitialized=false;await sb.auth.signOut();currentUser=null;currentProfile=null;
+  appInitialized=false;currentGroup=null;
+  await sb.auth.signOut();currentUser=null;currentProfile=null;
   closeMenu({target:document.getElementById('menu-overlay')});showAuth();
+}
+async function doLogoutFromGroup(){
+  appInitialized=false;currentGroup=null;
+  await sb.auth.signOut();currentUser=null;currentProfile=null;
+  showAuth();
 }
 function showAuth(){
   document.getElementById('auth-screen').classList.remove('hidden');
+  document.getElementById('group-screen').style.display='none';
   document.getElementById('app-screen').classList.remove('visible');
   document.getElementById('app-screen').style.display='none';
 }
+function showGroupScreen(){
+  document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('group-screen').style.display='block';
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('app-screen').classList.remove('visible');
+  document.getElementById('group-user-name').textContent=currentProfile?.display_name||'';
+  loadMyGroups();
+}
 function showApp(){
   document.getElementById('auth-screen').classList.add('hidden');
+  document.getElementById('group-screen').style.display='none';
   document.getElementById('app-screen').style.display='block';
   document.getElementById('app-screen').classList.add('visible');
+  // ヘッダーにグループ名を表示
+  const titleEl=document.querySelector('.header-title');
+  if(titleEl&&currentGroup)titleEl.innerHTML=`⚽ ${currentGroup.name}`;
   currentSectionIdx=0;
   SECTIONS.forEach((s,i)=>{
     const el=document.getElementById('sec-'+s);
@@ -807,21 +863,23 @@ async function loadAll(){
   renderRanking();
 }
 async function loadKnockoutResults(){
-  const{data}=await sb.from('knockout_results').select('*');
+  const{data}=await sb.from('knockout_results').select('*').eq('group_id',currentGroup.id);
   knockoutResults=data||[];
 }
 async function loadMyPredictions(){
-  if(!currentUser)return;
-  const{data}=await sb.from('predictions')
-    .select('match_id,result')
-    .eq('user_id',currentUser.id)
-    .order('created_at',{ascending:false});
-  myPredictions={};
-  (data||[]).forEach(p=>{myPredictions[p.match_id]=p.result;});
-  updatePredCount();
+  if(!currentUser||!currentGroup)return;
+  const{data}=await sb.from('predictions').select('match_id,result').eq('user_id',currentUser.id).eq('group_id',currentGroup.id).order('created_at',{ascending:false});
+  myPredictions={};(data||[]).forEach(p=>{myPredictions[p.match_id]=p.result;});updatePredCount();
 }
-async function loadAllProfiles(){const{data}=await sb.from('profiles').select('*');allProfiles=data||[];}
-async function loadAllPredictions(){const{data}=await sb.from('predictions').select('*');allPredictions=data||[];}
+async function loadAllProfiles(){
+  if(!currentGroup)return;
+  const{data}=await sb.from('profiles').select('*').eq('group_id',currentGroup.id);
+  allProfiles=data||[];
+}
+async function loadAllPredictions(){
+  if(!currentGroup)return;
+  const{data}=await sb.from('predictions').select('*').eq('group_id',currentGroup.id);allPredictions=data||[];
+}
 // ── 試合結果 自動同期 ──
 const API_TEAM_MAP={
   'Mexico':'Mexico','South Africa':'South Africa','South Korea':'South Korea','Czech Republic':'Czech Republic',
@@ -873,7 +931,7 @@ async function autoSyncResults(){
       if(existing){
         await sb.from('match_results').update({result,home_score:hs,away_score:as}).eq('match_id',appMatch.id);
       } else {
-        await sb.from('match_results').insert({match_id:appMatch.id,result,home_score:hs,away_score:as,entered_by:currentUser.id});
+        await sb.from('match_results').insert({match_id:appMatch.id,result,home_score:hs,away_score:as,entered_by:currentUser.id,group_id:currentGroup.id});
       }
       updated++;
     }
@@ -892,15 +950,16 @@ async function manualSync(){
   renderResultMatches();
 }
 async function loadResults(){
-  const{data}=await sb.from('match_results').select('*');
+  if(!currentGroup)return;
+  const{data}=await sb.from('match_results').select('*').eq('group_id',currentGroup.id);
   allResults={};
   (data||[]).forEach(r=>{allResults[r.match_id]={result:r.result,home_score:r.home_score,away_score:r.away_score};});
-  if(currentProfile?.is_admin)autoSyncResults();
+  if(currentProfile?.group_id===currentGroup?.id||currentGroup?.created_by===currentUser?.id)autoSyncResults();
 }
-async function loadChampPicks(){const{data}=await sb.from('champion_picks').select('*');champPicks=data||[];}
-async function loadScorerPicks(){const{data}=await sb.from('top_scorer_picks').select('*');scorerPicks=data||[];}
-async function loadGroupAdvancePicks(){const{data}=await sb.from('group_advance_picks').select('*');groupAdvancePicks=data||[];}
-async function loadKnockoutPicks(){const{data}=await sb.from('knockout_picks').select('*');knockoutPicks=data||[];}
+async function loadChampPicks(){if(!currentGroup)return;const{data}=await sb.from('champion_picks').select('*').eq('group_id',currentGroup.id);champPicks=data||[];}
+async function loadScorerPicks(){if(!currentGroup)return;const{data}=await sb.from('top_scorer_picks').select('*').eq('group_id',currentGroup.id);scorerPicks=data||[];}
+async function loadGroupAdvancePicks(){if(!currentGroup)return;const{data}=await sb.from('group_advance_picks').select('*').eq('group_id',currentGroup.id);groupAdvancePicks=data||[];}
+async function loadKnockoutPicks(){if(!currentGroup)return;const{data}=await sb.from('knockout_picks').select('*').eq('group_id',currentGroup.id);knockoutPicks=data||[];}
 function updatePredCount(){document.getElementById('pred-done').textContent=Object.values(myPredictions).filter(v=>v).length;}
 
 // ── SCHEDULE ──
@@ -997,7 +1056,7 @@ async function setPred(matchId,result){
   renderMatchList();updatePredCount();
 
   if(prev)await sb.from('predictions').update({result}).match({user_id:currentUser.id,match_id:matchId});
-  else await sb.from('predictions').insert({user_id:currentUser.id,match_id:matchId,result});
+  else await sb.from('predictions').insert({user_id:currentUser.id,match_id:matchId,result,group_id:currentGroup.id});
   showToast('予想を保存しました ✓');
 }
 
@@ -1049,7 +1108,7 @@ async function setChampPick(team){
     await loadChampPicks();renderChampion();showToast('優勝予想を解除しました');return;
   }
   if(ex)await sb.from('champion_picks').update({team_name:team}).eq('user_id',currentUser.id);
-  else await sb.from('champion_picks').insert({user_id:currentUser.id,team_name:team});
+  else await sb.from('champion_picks').insert({user_id:currentUser.id,team_name:team,group_id:currentGroup.id});
   await loadChampPicks();renderChampion();showToast(`${FLAGS[team]||''} ${team} を優勝予想に設定しました`);
 }
 
@@ -1073,7 +1132,7 @@ async function toggleGroupPick(group,team){
   else{t1=t2;t2=team;}
   if(t1||t2){
     if(myPick)await sb.from('group_advance_picks').update({team1:t1,team2:t2}).match({user_id:currentUser.id,group_name:group});
-    else await sb.from('group_advance_picks').insert({user_id:currentUser.id,group_name:group,team1:t1,team2:t2});
+    else await sb.from('group_advance_picks').insert({user_id:currentUser.id,group_name:group,team1:t1,team2:t2,group_id:currentGroup.id});
   } else if(myPick){
     await sb.from('group_advance_picks').delete().match({user_id:currentUser.id,group_name:group});
   }
@@ -1122,7 +1181,7 @@ async function setKoPick(round,matchId,winner){
     await loadKnockoutPicks();renderKnockout();showToast('予想を解除しました');return;
   }
   if(ex)await sb.from('knockout_picks').update({winner}).match({user_id:currentUser.id,round,match_id:matchId});
-  else await sb.from('knockout_picks').insert({user_id:currentUser.id,round,match_id:matchId,winner});
+  else await sb.from('knockout_picks').insert({user_id:currentUser.id,round,match_id:matchId,winner,group_id:currentGroup.id});
   await loadKnockoutPicks();renderKnockout();showToast(`${FLAGS[winner]||''} ${winner} を予想しました`);
 }
 
@@ -1160,7 +1219,7 @@ async function setScorerPick(player,team){
     await loadScorerPicks();renderScorer();showToast('得点王予想を解除しました');return;
   }
   if(ex)await sb.from('top_scorer_picks').update({player_name:player,team_name:team}).eq('user_id',currentUser.id);
-  else await sb.from('top_scorer_picks').insert({user_id:currentUser.id,player_name:player,team_name:team});
+  else await sb.from('top_scorer_picks').insert({user_id:currentUser.id,player_name:player,team_name:team,group_id:currentGroup.id});
   await loadScorerPicks();renderScorer();showToast(`${player} を得点王予想に設定しました`);
 }
 
@@ -1426,7 +1485,7 @@ async function saveKOScore(round,idx,home,away){
 
 async function saveKOWinner(round,idx,home,away,hs,as,winner){
   const existing=knockoutResults.find(r=>r.round===round&&r.match_index===idx);
-  const data={round,match_index:idx,home_team:home,away_team:away,home_score:hs,away_score:as,winner,entered_by:currentUser.id};
+  const data={round,match_index:idx,home_team:home,away_team:away,home_score:hs,away_score:as,winner,entered_by:currentUser.id,group_id:currentGroup.id};
   if(existing){
     await sb.from('knockout_results').update(data).match({round,match_index:idx});
     knockoutResults=knockoutResults.map(r=>r.round===round&&r.match_index===idx?{...r,...data}:r);
@@ -1473,7 +1532,7 @@ async function autoSyncKO(){
           const winner=hs>as?home:hs<as?away:null;
           if(!winner)continue;
           const existing=knockoutResults.find(r=>r.round===roundId&&r.match_index===i);
-          const d={round:roundId,match_index:i,home_team:home,away_team:away,home_score:hs,away_score:as,winner,entered_by:currentUser.id};
+          const d={round:roundId,match_index:i,home_team:home,away_team:away,home_score:hs,away_score:as,winner,entered_by:currentUser.id,group_id:currentGroup.id};
           if(existing){
             await sb.from('knockout_results').update(d).match({round:roundId,match_index:i});
             knockoutResults=knockoutResults.map(r=>r.round===roundId&&r.match_index===i?{...r,...d}:r);
@@ -1516,7 +1575,7 @@ function renderOddsMatches(){
 function renderRanking(){
   const scores=allProfiles.map((p,i)=>{
     const preds=allPredictions.filter(pr=>pr.user_id===p.id);
-    let pts=0;preds.forEach(pr=>{const r=allResults[pr.match_id];if(r?.result&&r.result===pr.result)pts+=3;});
+    let pts=0;preds.forEach(pr=>{const r=allResults[pr.match_id];if(r?.result&&r.result===pr.result)pts+=1;});
     const cp=champPicks.find(c=>c.user_id===p.id&&c.team_name);
     const sp=scorerPicks.find(c=>c.user_id===p.id&&c.player_name);
     const col=AVATARS[i%AVATARS.length];
@@ -1555,7 +1614,7 @@ async function setResult(matchId,result){
   const as=parseInt(document.getElementById(`as_${matchId}`)?.value)||null;
   allResults[matchId]={result,home_score:hs,away_score:as};
   if(rData)await sb.from('match_results').update({result,home_score:hs,away_score:as}).eq('match_id',matchId);
-  else await sb.from('match_results').insert({match_id:matchId,result,home_score:hs,away_score:as,entered_by:currentUser.id});
+  else await sb.from('match_results').insert({match_id:matchId,result,home_score:hs,away_score:as,entered_by:currentUser.id,group_id:currentGroup.id});
   renderResultMatches();renderRanking();renderMatchList();showToast('結果を記録しました ✓');
 }
 async function saveScore(matchId,home,away){
@@ -1567,7 +1626,7 @@ async function saveScore(matchId,home,away){
   allResults[matchId]={result,home_score:hs,away_score:as};
   const ex=await sb.from('match_results').select('match_id').eq('match_id',matchId).single();
   if(ex.data)await sb.from('match_results').update({result,home_score:hs,away_score:as}).eq('match_id',matchId);
-  else await sb.from('match_results').insert({match_id:matchId,result,home_score:hs,away_score:as,entered_by:currentUser.id});
+  else await sb.from('match_results').insert({match_id:matchId,result,home_score:hs,away_score:as,entered_by:currentUser.id,group_id:currentGroup.id});
   renderResultMatches();renderRanking();renderMatchList();
   showToast(`${FLAGS[home]||''} ${hs} - ${as} ${FLAGS[away]||''} 保存しました`);
 }
@@ -1659,8 +1718,77 @@ function initPredictSwipe(){
 
 // ── COMMENTS ──
 async function loadComments(){
-  const{data}=await sb.from('comments').select('*,profiles(display_name)').order('created_at',{ascending:false}).limit(100);
+  if(!currentGroup)return;
+  const{data}=await sb.from('comments').select('*,profiles(display_name)').eq('group_id',currentGroup.id).order('created_at',{ascending:false}).limit(100);
   comments=data||[];
+}
+
+// ── グループ管理 ──
+async function loadMyGroups(){
+  const el=document.getElementById('my-groups-list');if(!el)return;
+  el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  const[{data:created},{data:joined}]=await Promise.all([
+    sb.from('groups').select('*').eq('created_by',currentUser.id),
+    currentProfile?.group_id?sb.from('groups').select('*').eq('id',currentProfile.group_id):{data:[]},
+  ]);
+  const allGroups=[...(created||[])];
+  (joined||[]).forEach(g=>{if(!allGroups.find(x=>x.id===g.id))allGroups.push(g);});
+  if(!allGroups.length){
+    el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:12px">参加中のグループはありません</div>';return;
+  }
+  el.innerHTML=allGroups.map(g=>{
+    const isOwner=g.created_by===currentUser.id;
+    return`<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div style="flex:1">
+        <div style="font-size:14px;font-weight:700;color:var(--text)">${g.name}${isOwner?' 👑':''}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">招待コード: <span style="font-family:monospace;color:var(--blue3);font-weight:700">${g.invite_code}</span>
+          <button onclick="copyInviteCode('${g.invite_code}')" style="margin-left:6px;padding:2px 8px;font-size:10px;font-weight:600;background:rgba(21,101,192,.3);border:1px solid var(--blue2);border-radius:4px;color:var(--blue3);cursor:pointer">コピー</button>
+        </div>
+      </div>
+      <button onclick="enterGroup('${g.id}')" style="padding:8px 14px;font-size:13px;font-weight:700;background:linear-gradient(135deg,#1976D2,#1565C0);border:none;border-radius:8px;color:#fff;cursor:pointer;flex-shrink:0">入る</button>
+    </div>`;
+  }).join('');
+}
+function copyInviteCode(code){
+  navigator.clipboard.writeText(code).then(()=>showToast(`招待コード「${code}」をコピーしました`)).catch(()=>{});
+}
+async function createGroup(){
+  const nameEl=document.getElementById('new-group-name');
+  const name=nameEl.value.trim();
+  if(!name){showToast('グループ名を入力してください');return;}
+  const code=Math.random().toString(36).slice(2,8).toUpperCase();
+  const{data,error}=await sb.from('groups').insert({name,invite_code:code,created_by:currentUser.id}).select().single();
+  if(error){showToast('作成に失敗しました');return;}
+  nameEl.value='';
+  await joinGroup(data);
+  showToast(`「${name}」を作成しました！コード: ${code}`);
+}
+async function joinByCode(){
+  const code=document.getElementById('invite-code-input').value.trim().toUpperCase();
+  const errEl=document.getElementById('invite-error');errEl.textContent='';
+  if(!code){errEl.textContent='招待コードを入力してください';return;}
+  const{data,error}=await sb.from('groups').select('*').eq('invite_code',code).single();
+  if(error||!data){errEl.textContent='招待コードが見つかりません';return;}
+  document.getElementById('invite-code-input').value='';
+  await joinGroup(data);
+}
+async function joinGroup(group){
+  await sb.from('profiles').update({group_id:group.id}).eq('id',currentUser.id);
+  if(currentProfile)currentProfile.group_id=group.id;
+  await enterGroup(group.id);
+}
+async function enterGroup(groupId){
+  const{data}=await sb.from('groups').select('*').eq('id',groupId).single();
+  if(!data){showToast('グループが見つかりません');return;}
+  currentGroup=data;
+  if(currentProfile)currentProfile.is_admin=data.created_by===currentUser.id;
+  if(currentProfile?.is_admin){
+    document.getElementById('admin-result-section').style.display='block';
+    document.getElementById('admin-ko-section').style.display='block';
+    document.getElementById('admin-user-menu').style.display='block';
+  }
+  showApp();
+  await loadAll();
 }
 function renderComments(){
   const el=document.getElementById('comments-list');if(!el)return;
@@ -1691,7 +1819,7 @@ async function postComment(){
   const content=input.value.trim();
   if(!content){showToast('コメントを入力してください');return;}
   if(content.length>200){showToast('200文字以内で入力してください');return;}
-  await sb.from('comments').insert({user_id:currentUser.id,content});
+  await sb.from('comments').insert({user_id:currentUser.id,content,group_id:currentGroup.id});
   input.value='';
   await loadComments();
   renderComments();
@@ -1765,6 +1893,11 @@ function subscribeComments(){
   }).subscribe();
 }
 
+function switchGroup(){
+  currentGroup=null;
+  closeMenu({target:document.getElementById('menu-overlay')});
+  showGroupScreen();
+}
 function openMenu(){
   document.getElementById('menu-overlay').classList.add('show');
   const input=document.getElementById('new-display-name');
