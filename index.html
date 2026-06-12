@@ -276,6 +276,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
       <div class="form-group"><label class="form-label">パスワード</label><input type="password" class="form-input" id="login-pass" placeholder="••••••••"></div>
       <button class="btn btn-primary" onclick="doLogin()">ログイン</button>
       <div class="auth-error" id="login-error"></div>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="showResetForm()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;text-decoration:underline">パスワードを忘れた方はこちら</button>
+      </div>
+    </div>
+    <div id="reset-form" style="display:none">
+      <div style="font-size:13px;color:rgba(255,255,255,.7);margin-bottom:12px;text-align:center">登録したメールアドレスを入力してください。<br>パスワードリセットメールを送ります。</div>
+      <div class="form-group"><label class="form-label">メールアドレス</label><input type="email" class="form-input" id="reset-email" placeholder="example@email.com"></div>
+      <button class="btn btn-primary" onclick="doReset()">リセットメールを送る</button>
+      <div class="auth-error" id="reset-error"></div>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="showLoginForm()" style="background:none;border:none;color:rgba(255,255,255,.5);font-size:12px;cursor:pointer;text-decoration:underline">← ログインに戻る</button>
+      </div>
     </div>
     <div id="signup-form" style="display:none">
       <div class="form-group"><label class="form-label">表示名</label><input type="text" class="form-input" id="signup-name" placeholder="例：田中"></div>
@@ -789,9 +801,34 @@ sb.auth.getSession().then(async({data:{session}})=>{
   }
 });
 
+function showResetForm(){
+  document.getElementById('login-form').style.display='none';
+  document.getElementById('reset-form').style.display='block';
+  document.getElementById('reset-email').value=document.getElementById('login-email').value;
+}
+function showLoginForm(){
+  document.getElementById('reset-form').style.display='none';
+  document.getElementById('login-form').style.display='block';
+}
+async function doReset(){
+  const email=document.getElementById('reset-email').value.trim();
+  const errEl=document.getElementById('reset-error');
+  errEl.textContent='';
+  if(!email){errEl.textContent='メールアドレスを入力してください';return;}
+  const btn=event.target;btn.textContent='...';btn.disabled=true;
+  const{error}=await sb.auth.resetPasswordForEmail(email,{
+    redirectTo:'https://atakai710-netizen.github.io/worldcup2026/'
+  });
+  btn.textContent='リセットメールを送る';btn.disabled=false;
+  if(error){errEl.textContent=error.message;return;}
+  errEl.style.color='var(--green4)';
+  errEl.textContent='✓ リセットメールを送りました！メールをご確認ください';
+  setTimeout(()=>showLoginForm(),3000);
+}
 function switchAuthTab(tab){
   document.querySelectorAll('.auth-tab').forEach((t,i)=>t.classList.toggle('active',i===(tab==='login'?0:1)));
   document.getElementById('login-form').style.display=tab==='login'?'':'none';
+  document.getElementById('reset-form').style.display='none';
   document.getElementById('signup-form').style.display=tab==='signup'?'':'none';
 }
 async function doLogin(){
