@@ -300,7 +300,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
   <div class="auth-stripe"><div style="background:#1565C0"></div><div style="background:#e53935"></div><div style="background:#2e7d32"></div></div>
 </div>
 
-<!-- GROUP SELECT -->
+<!-- PASSWORD RESET -->
+<div id="reset-screen" style="display:none;position:fixed;inset:0;background:linear-gradient(160deg,#0d2240 0%,#1a4a8a 45%,#c62828 100%);z-index:1001;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px">
+  <div style="font-size:40px;margin-bottom:16px">🔑</div>
+  <div style="font-size:20px;font-weight:800;color:#fff;margin-bottom:8px">新しいパスワードを設定</div>
+  <div style="font-size:13px;color:rgba(255,255,255,.6);margin-bottom:24px;text-align:center">6文字以上で入力してください</div>
+  <div style="width:100%;max-width:360px">
+    <div class="form-group"><label class="form-label">新しいパスワード</label><input type="password" class="form-input" id="new-pass-1" placeholder="••••••••"></div>
+    <div class="form-group"><label class="form-label">確認（もう一度入力）</label><input type="password" class="form-input" id="new-pass-2" placeholder="••••••••"></div>
+    <button class="btn btn-primary" onclick="doUpdatePassword()" style="margin-top:8px">パスワードを変更する</button>
+    <div id="reset-update-error" class="auth-error"></div>
+  </div>
+</div>
 <div id="group-screen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:500;overflow-y:auto;padding:24px 16px">
   <div style="max-width:420px;margin:0 auto">
     <div style="text-align:center;margin-bottom:24px">
@@ -794,14 +805,26 @@ const SECTIONS=['schedule','predict','standings','bracket','comments','ranking']
 sb.auth.onAuthStateChange(async(event,session)=>{
   if(event==='PASSWORD_RECOVERY'){
     // パスワード変更画面を表示
-    const newPass=prompt('新しいパスワードを入力してください（6文字以上）:');
-    if(newPass&&newPass.length>=6){
-      const{error}=await sb.auth.updateUser({password:newPass});
-      if(error){alert('エラー: '+error.message);}
-      else{alert('✅ パスワードを変更しました！ログインしてください');}
-    }
+    document.getElementById('auth-screen').classList.add('hidden');
+    document.getElementById('reset-screen').style.display='flex';
   }
 });
+
+async function doUpdatePassword(){
+  const p1=document.getElementById('new-pass-1').value;
+  const p2=document.getElementById('new-pass-2').value;
+  const errEl=document.getElementById('reset-update-error');
+  errEl.textContent='';
+  if(p1.length<6){errEl.textContent='6文字以上で入力してください';return;}
+  if(p1!==p2){errEl.textContent='パスワードが一致しません';return;}
+  const btn=event.target;btn.textContent='...';btn.disabled=true;
+  const{error}=await sb.auth.updateUser({password:p1});
+  btn.textContent='パスワードを変更する';btn.disabled=false;
+  if(error){errEl.textContent=error.message;return;}
+  document.getElementById('reset-screen').style.display='none';
+  showToast('✅ パスワードを変更しました！ログインしてください');
+  showAuth();
+}
 sb.auth.getSession().then(async({data:{session}})=>{
   if(session&&!appInitialized){
     appInitialized=true;currentUser=session.user;
