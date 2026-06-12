@@ -812,12 +812,22 @@ async function doSignup(){
   const{data,error}=await sb.auth.signUp({email,password:pass,options:{data:{display_name:name}}});
   btn.textContent='登録する';btn.disabled=false;
   if(error){document.getElementById('signup-error').textContent=error.message;return;}
-  // 登録後に自動ログイン
   if(data.session){
     appInitialized=true;currentUser=data.session.user;
-    // プロフィールが作成されるまで少し待つ
-    await new Promise(r=>setTimeout(r,1000));
-    try{await loadProfile();}catch(e){}
+    // プロフィールが作成されるまで最大5秒待つ
+    for(let i=0;i<10;i++){
+      await new Promise(r=>setTimeout(r,500));
+      try{
+        const{data:p}=await sb.from('profiles').select('*').eq('id',currentUser.id).single();
+        if(p){
+          currentProfile=p;
+          document.getElementById('user-avatar').textContent=p.display_name.slice(0,2);
+          document.getElementById('menu-name').textContent=p.display_name;
+          document.getElementById('menu-email').textContent=currentUser.email;
+          break;
+        }
+      }catch(e){}
+    }
     showGroupScreen();
   } else {
     showToast('登録完了！ログインしてください');
@@ -901,8 +911,11 @@ async function loadMyPredictions(){
 }
 async function loadAllProfiles(){
   if(!currentGroup)return;
-  const{data}=await sb.from('profiles').select('*').eq('group_id',currentGroup.id);
-  allProfiles=data||[];
+  // group_membersテーブルからグループメンバーのみ取得
+  const{data}=await sb.from('group_members')
+    .select('user_id, profiles(*)')
+    .eq('group_id',currentGroup.id);
+  allProfiles=(data||[]).map(m=>m.profiles).filter(Boolean);
 }
 async function loadAllPredictions(){
   if(!currentGroup)return;
@@ -1755,12 +1768,16 @@ async function loadComments(){
 async function loadMyGroups(){
   const el=document.getElementById('my-groups-list');if(!el)return;
   el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
-  const[{data:created},{data:joined}]=await Promise.all([
+  // group_membersから自分が参加しているグループを取得
+  const[{data:members},{data:created}]=await Promise.all([
+    sb.from('group_members').select('group_id, groups(*)').eq('user_id',currentUser.id),
     sb.from('groups').select('*').eq('created_by',currentUser.id),
-    currentProfile?.group_id?sb.from('groups').select('*').eq('id',currentProfile.group_id):{data:[]},
   ]);
   const allGroups=[...(created||[])];
-  (joined||[]).forEach(g=>{if(!allGroups.find(x=>x.id===g.id))allGroups.push(g);});
+  (members||[]).forEach(m=>{
+    const g=m.groups;
+    if(g&&!allGroups.find(x=>x.id===g.id))allGroups.push(g);
+  });
   if(!allGroups.length){
     el.innerHTML='<div style="font-size:13px;color:var(--text3);text-align:center;padding:12px">参加中のグループはありません</div>';return;
   }
@@ -1801,6 +1818,12 @@ async function joinByCode(){
   await joinGroup(data);
 }
 async function joinGroup(group){
+  // group_membersに追加（既存なら無視）
+  await sb.from('group_members').upsert(
+    {group_id:group.id, user_id:currentUser.id},
+    {onConflict:'group_id,user_id'}
+  );
+  // profilesのgroup_idも更新（最後に参加したグループ）
   await sb.from('profiles').update({group_id:group.id}).eq('id',currentUser.id);
   if(currentProfile)currentProfile.group_id=group.id;
   await enterGroup(group.id);
