@@ -790,7 +790,18 @@ let scheduleGroup='A',oddsGroup='A',resultGroup='A',currentPredictTab='champion'
 let currentSectionIdx=0;
 const SECTIONS=['schedule','predict','standings','bracket','comments','ranking'];
 
-// ── AUTH ──
+// パスワードリセットのトークン検出
+sb.auth.onAuthStateChange(async(event,session)=>{
+  if(event==='PASSWORD_RECOVERY'){
+    // パスワード変更画面を表示
+    const newPass=prompt('新しいパスワードを入力してください（6文字以上）:');
+    if(newPass&&newPass.length>=6){
+      const{error}=await sb.auth.updateUser({password:newPass});
+      if(error){alert('エラー: '+error.message);}
+      else{alert('✅ パスワードを変更しました！ログインしてください');}
+    }
+  }
+});
 sb.auth.getSession().then(async({data:{session}})=>{
   if(session&&!appInitialized){
     appInitialized=true;currentUser=session.user;
