@@ -1708,12 +1708,17 @@ function renderResultSection(){
 }
 function setResultGroup(g){resultGroup=g;renderResultSection();}
 function renderResultMatches(){
-  document.getElementById('result-match-list').innerHTML=ALL_MATCHES.filter(m=>m.group===resultGroup).map(m=>{
+  const matches=ALL_MATCHES.filter(m=>m.group===resultGroup)
+    .slice()
+    .sort((a,b)=>getKickoffTime(a.id)-getKickoffTime(b.id));
+  document.getElementById('result-match-list').innerHTML=matches.map(m=>{
     const rData=allResults[m.id];const r=rData?.result||'';
     const hs=rData?.home_score??'';const as=rData?.away_score??'';
     const hf=FLAGS[m.home]||'';const af=FLAGS[m.away]||'';
     const hn=teamName(m.home);const an=teamName(m.away);
-    return`<div class="match-row"><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text2)">${hf} ${hn} vs ${af} ${an}</div><div class="result-btns"><button class="result-btn${r==='W'?' sel-w':''}" onclick="setResult('${m.id}','W')">${hf} ${hn}勝ち</button><button class="result-btn${r==='D'?' sel-d':''}" onclick="setResult('${m.id}','D')">🤝 引分</button><button class="result-btn${r==='L'?' sel-l':''}" onclick="setResult('${m.id}','L')">${af} ${an}勝ち</button></div><div class="score-input-row"><span style="font-size:11px;color:var(--text3);min-width:20px">${hf}</span><input class="score-input" type="number" min="0" max="20" value="${hs}" id="hs_${m.id}" placeholder="0"><span class="score-dash">-</span><input class="score-input" type="number" min="0" max="20" value="${as}" id="as_${m.id}" placeholder="0"><span style="font-size:11px;color:var(--text3);min-width:20px;text-align:right">${af}</span><button class="score-save-btn" onclick="saveScore('${m.id}','${m.home}','${m.away}')">保存</button></div></div>`;
+    const sch=MATCH_SCHEDULE[m.id];
+    const timeLabel=sch?`📅 ${sch.date} ${sch.time} JST ／ ${sch.venue}`:'';
+    return`<div class="match-row"><div style="font-size:10px;color:var(--text3);margin-bottom:3px">${timeLabel}</div><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--text2)">${hf} ${hn} vs ${af} ${an}</div><div class="result-btns"><button class="result-btn${r==='W'?' sel-w':''}" onclick="setResult('${m.id}','W')">${hf} ${hn}勝ち</button><button class="result-btn${r==='D'?' sel-d':''}" onclick="setResult('${m.id}','D')">🤝 引分</button><button class="result-btn${r==='L'?' sel-l':''}" onclick="setResult('${m.id}','L')">${af} ${an}勝ち</button></div><div class="score-input-row"><span style="font-size:11px;color:var(--text3);min-width:20px">${hf}</span><input class="score-input" type="number" min="0" max="20" value="${hs}" id="hs_${m.id}" placeholder="0"><span class="score-dash">-</span><input class="score-input" type="number" min="0" max="20" value="${as}" id="as_${m.id}" placeholder="0"><span style="font-size:11px;color:var(--text3);min-width:20px;text-align:right">${af}</span><button class="score-save-btn" onclick="saveScore('${m.id}','${m.home}','${m.away}')">保存</button></div></div>`;
   }).join('');
 }
 async function setResult(matchId,result){
