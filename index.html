@@ -1104,7 +1104,11 @@ function getKickoffTime(matchId){
   const[hour,min]=sch.time.split(':').map(Number);
   return Date.UTC(2026,month-1,day,hour-9,min);
 }
+// 一時的にロック解除する試合（管理者が特別に開放）
+const UNLOCK_OVERRIDE=['C23']; // ハイチ vs スコットランド
+
 function isMatchLocked(matchId){
+  if(UNLOCK_OVERRIDE.includes(matchId))return false;
   const kickoffUTC=getKickoffTime(matchId);
   if(kickoffUTC===Infinity)return false;
   return Date.now()>=kickoffUTC;
