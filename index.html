@@ -1097,19 +1097,23 @@ function initGroupSwipe(){
   },{passive:true});
 }
 // 試合開始時刻チェック（JST→UTC変換）
-function isMatchLocked(matchId){
+function getKickoffTime(matchId){
   const sch=MATCH_SCHEDULE[matchId];
-  if(!sch)return false;
-  // "6/15" "5:00" → 2026年のJST時刻
+  if(!sch)return Infinity;
   const[month,day]=sch.date.split('/').map(Number);
   const[hour,min]=sch.time.split(':').map(Number);
-  // JST = UTC+9
-  const kickoffUTC=Date.UTC(2026,month-1,day,hour-9,min);
+  return Date.UTC(2026,month-1,day,hour-9,min);
+}
+function isMatchLocked(matchId){
+  const kickoffUTC=getKickoffTime(matchId);
+  if(kickoffUTC===Infinity)return false;
   return Date.now()>=kickoffUTC;
 }
 
 function renderMatchList(){
-  const matches=ALL_MATCHES.filter(m=>m.group===scheduleGroup);
+  const matches=ALL_MATCHES.filter(m=>m.group===scheduleGroup)
+    .slice()
+    .sort((a,b)=>getKickoffTime(a.id)-getKickoffTime(b.id));
   document.getElementById('match-list').innerHTML=matches.map(m=>{
     const p=myPredictions[m.id]||'';
     const rData=allResults[m.id];
