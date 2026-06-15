@@ -382,6 +382,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
           <button class="stab" onclick="setPredictTab('knockout',this)">⚡ KO</button>
           <button class="stab" onclick="setPredictTab('scorer',this)">⚽ 得点王</button>
         </div>
+        <div id="predict-deadline-banner" style="display:none;font-size:11px;color:var(--red);background:rgba(229,57,53,.12);border:1px solid rgba(229,57,53,.3);border-radius:8px;padding:8px 10px;margin-bottom:10px;text-align:center">🔒 優勝・突破・得点王の予想は締切済みです</div>
+        <div id="predict-deadline-notice" style="display:none;font-size:11px;color:var(--amber2);background:rgba(245,124,0,.12);border:1px solid rgba(245,124,0,.3);border-radius:8px;padding:8px 10px;margin-bottom:10px;text-align:center">⏰ 優勝・突破・得点王予想の締切：6/18(木) 23:59 JST</div>
         <div id="predict-champion">
           <div class="card"><div class="card-title">あなたの優勝予想</div><div class="champ-grid" id="champ-grid"></div></div>
           <div class="card"><div class="card-title">みんなの優勝予想</div><div id="champ-summary"></div></div>
@@ -559,7 +561,7 @@ const TOP_SCORERS=[
   // England 🏴󠁧󠁢󠁥󠁮󠁧󠁿
   {name:'Harry Kane',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'Bukayo Saka',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'Phil Foden',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'Jude Bellingham',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},{name:'Marcus Rashford',team:'England',flag:'🏴󠁧󠁢󠁥󠁮󠁧󠁿'},
   // France 🇫🇷
-  {name:'Kylian Mbappé',team:'France',flag:'🇫🇷'},{name:'Ousmane Dembélé',team:'France',flag:'🇫🇷'},{name:'Marcus Thuram',team:'France',flag:'🇫🇷'},{name:'Antoine Griezmann',team:'France',flag:'🇫🇷'},{name:'Randal Kolo Muani',team:'France',flag:'🇫🇷'},
+  {name:'Kylian Mbappé',team:'France',flag:'🇫🇷'},{name:'Ousmane Dembélé',team:'France',flag:'🇫🇷'},{name:'Marcus Thuram',team:'France',flag:'🇫🇷'},{name:'Antoine Griezmann',team:'France',flag:'🇫🇷'},{name:'Randal Kolo Muani',team:'France',flag:'🇫🇷'},{name:'Michael Olise',team:'France',flag:'🇫🇷'},
   // Germany 🇩🇪
   {name:'Florian Wirtz',team:'Germany',flag:'🇩🇪'},{name:'Jamal Musiala',team:'Germany',flag:'🇩🇪'},{name:'Kai Havertz',team:'Germany',flag:'🇩🇪'},{name:'Leroy Sané',team:'Germany',flag:'🇩🇪'},{name:'Serge Gnabry',team:'Germany',flag:'🇩🇪'},
   // Ghana 🇬🇭
@@ -747,7 +749,7 @@ const PLAYER_JA={
   'Lionel Messi':'リオネル・メッシ','Julián Álvarez':'フリアン・アルバレス','Lautaro Martínez':'ラウタロ・マルティネス',
   'Thiago Almada':'ティアゴ・アルマダ','Giuliano Simeone':'ジュリアーノ・シメオネ','Nico Paz':'ニコ・パス',
   'Kylian Mbappé':'キリアン・エムバペ','Ousmane Dembélé':'ウスマン・デンベレ','Marcus Thuram':'マルクス・テュラム',
-  'Antoine Griezmann':'アントワーヌ・グリーズマン','Randal Kolo Muani':'ランダル・コロ・ムアニ',
+  'Antoine Griezmann':'アントワーヌ・グリーズマン','Randal Kolo Muani':'ランダル・コロ・ムアニ','Michael Olise':'マイケル・オリーセ',
   'Lamine Yamal':'ラミン・ヤマル','Álvaro Morata':'アルバロ・モラタ','Pedri':'ペドリ','Nico Williams':'ニコ・ウィリアムス',
   'Mikel Oyarzabal':'ミケル・オヤルサバル',
   'Vinicius Jr.':'ヴィニシウス・ジュニオール','Neymar Jr':'ネイマール','Raphinha':'ラフィーニャ',
@@ -1202,6 +1204,10 @@ function setPredictTab(tab,btn){
   ['champion','group','knockout','scorer'].forEach(t=>{
     document.getElementById(`predict-${t}`).style.display=t===tab?'':'none';
   });
+  // 締切バナー（KOタブ以外）
+  const showBanner=tab!=='knockout';
+  document.getElementById('predict-deadline-banner').style.display=(showBanner&&isPredictionLocked())?'block':'none';
+  document.getElementById('predict-deadline-notice').style.display=(showBanner&&!isPredictionLocked())?'block':'none';
   if(tab==='champion')renderChampion();
   if(tab==='group')renderGroupAdvance();
   if(tab==='knockout')renderKnockout();
@@ -1209,6 +1215,13 @@ function setPredictTab(tab,btn){
 }
 
 // ── CHAMPION ──
+// ── 優勝/突破/得点王 予想の締切 ──
+// 6/18(木) 23:59 JST = 6/18 14:59 UTC
+const PREDICTION_DEADLINE_UTC=Date.UTC(2026,5,18,14,59,0); // month is 0-indexed: 5=June
+function isPredictionLocked(){
+  return Date.now()>=PREDICTION_DEADLINE_UTC;
+}
+
 function renderChampion(){
   const allTeams=Object.values(GROUPS).flat();
   const myPick=champPicks.find(c=>c.user_id===currentUser?.id&&c.team_name)?.team_name||'';
@@ -1222,6 +1235,7 @@ function renderChampion(){
 }
 async function setChampPick(team){
   if(!currentUser||!currentGroup)return;
+  if(isPredictionLocked()){showToast('🔒 優勝予想の締切は終了しました');return;}
   const ex=champPicks.find(c=>c.user_id===currentUser.id&&c.group_id===currentGroup.id);
   if(ex?.team_name===team){
     await sb.from('champion_picks').delete().match({user_id:currentUser.id,group_id:currentGroup.id});
@@ -1243,6 +1257,7 @@ function renderGroupAdvance(){
 }
 async function toggleGroupPick(group,team){
   if(!currentUser)return;
+  if(isPredictionLocked()){showToast('🔒 グループ突破予想の締切は終了しました');return;}
   const myPick=groupAdvancePicks.find(p=>p.user_id===currentUser.id&&p.group_name===group);
   let t1=myPick?.team1||'',t2=myPick?.team2||'';
   if(t1===team){t1=t2;t2='';}
@@ -1333,6 +1348,7 @@ function renderScorer(){
 }
 async function setScorerPick(player,team){
   if(!currentUser)return;
+  if(isPredictionLocked()){showToast('🔒 得点王予想の締切は終了しました');return;}
   const ex=scorerPicks.find(p=>p.user_id===currentUser.id);
   if(ex?.player_name===player){
     await sb.from('top_scorer_picks').delete().eq('user_id',currentUser.id);
@@ -1778,7 +1794,12 @@ function showSection(name,btn){
     if(el)el.classList.toggle('active',s===name);
   });
   document.querySelectorAll('.nav-item').forEach((b,i)=>b.classList.toggle('active',i===idx));
-  if(name==='predict'){renderChampion();initPredictSwipe();}
+  if(name==='predict'){
+    const showBanner=currentPredictTab!=='knockout';
+    document.getElementById('predict-deadline-banner').style.display=(showBanner&&isPredictionLocked())?'block':'none';
+    document.getElementById('predict-deadline-notice').style.display=(showBanner&&!isPredictionLocked())?'block':'none';
+    renderChampion();initPredictSwipe();
+  }
   if(name==='standings'){renderStandings();}
   if(name==='bracket')renderBracket();
   if(name==='comments')renderComments();
