@@ -252,6 +252,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .user-manage-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}
 .user-manage-item:last-child{border-bottom:none}
 .del-user-btn{margin-left:auto;padding:4px 10px;font-size:11px;font-weight:600;background:rgba(229,57,53,.2);border:1px solid var(--red);border-radius:6px;color:#ff8a80;cursor:pointer}
+.goal-rank-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.goal-rank-item:last-child{border-bottom:none}
+.goal-rank-num{font-size:13px;font-weight:800;min-width:24px;text-align:center}
+.goal-rank-name{flex:1;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.goal-rank-team{font-size:10px;color:var(--text3)}
+.goal-rank-goals{font-size:14px;font-weight:800;color:var(--blue3);min-width:48px;text-align:right}
 </style>
 </head>
 <body>
@@ -394,6 +400,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
           <div id="knockout-list"></div>
         </div>
         <div id="predict-scorer" style="display:none">
+          <div class="card"><div class="card-title">⚽ 現在の得点ランキング <button onclick="loadGoalRanking(true)" style="float:right;font-size:10px;padding:3px 8px;background:rgba(21,101,192,.3);border:1px solid var(--blue2);border-radius:6px;color:var(--blue3);cursor:pointer">🔄 更新</button></div><div id="goal-ranking"><div class="loading"><div class="spinner"></div></div></div></div>
           <div class="card"><div class="card-title">得点王を予想する</div><div class="scorer-grid" id="scorer-grid"></div></div>
           <div class="card"><div class="card-title">みんなの得点王予想</div><div id="scorer-summary"></div></div>
         </div>
@@ -746,6 +753,9 @@ const TEAM_JA={
 
 // 日本語選手名
 const PLAYER_JA={
+  'Julián Quiñones':'フリアン・キニョーネス','Raúl Jiménez':'ラウル・ヒメネス','Jonathan David':'ジョナサン・デイビッド',
+  'Cyle Larin':'サイル・ラリン','Johan Manzambi':'ヨハン・マンザンビ','Anel Ahmedhodžić':'アネル・アフメドホジッチ',
+  'Patrik Schick':'パトリク・シック','Adam Hložek':'アダム・フロゼク','Mohammed Kudus':'モハメド・クドゥス',
   'Lionel Messi':'リオネル・メッシ','Julián Álvarez':'フリアン・アルバレス','Lautaro Martínez':'ラウタロ・マルティネス',
   'Thiago Almada':'ティアゴ・アルマダ','Giuliano Simeone':'ジュリアーノ・シメオネ','Nico Paz':'ニコ・パス',
   'Kylian Mbappé':'キリアン・エムバペ','Ousmane Dembélé':'ウスマン・デンベレ','Marcus Thuram':'マルクス・テュラム',
@@ -1321,7 +1331,78 @@ async function setKoPick(round,matchId,winner){
 }
 
 // ── SCORER ──
+// ── 実際の得点ランキング（openfootball API） ──
+let goalRankingCache=null;
+let goalRankingLastFetch=0;
+
+async function loadGoalRanking(force){
+  const el=document.getElementById('goal-ranking');
+  if(!el)return;
+  // 10分キャッシュ
+  const now=Date.now();
+  if(!force&&goalRankingCache&&(now-goalRankingLastFetch<600000)){
+    renderGoalRanking(goalRankingCache);return;
+  }
+  if(force)el.innerHTML='<div class="loading"><div class="spinner"></div></div>';
+  try{
+    const res=await fetch('https://raw.githubusercontent.com/openfootball/worldcup.json/master/2026/worldcup.json');
+    const data=await res.json();
+    const scorers={};
+    (data.matches||[]).forEach(m=>{
+      // goals1=team1の得点者, goals2=team2の得点者
+      ['goals1','goals2'].forEach((key,idx)=>{
+        const team=idx===0?m.team1:m.team2;
+        (m[key]||[]).forEach(g=>{
+          if(!g.name)return;
+          // オウンゴールは除外
+          if(g.owngoal||g.own_goal)return;
+          const name=g.name;
+          if(!scorers[name])scorers[name]={name,team,goals:0,pk:0};
+          scorers[name].goals++;
+          if(g.penalty)scorers[name].pk++;
+        });
+      });
+    });
+    const ranking=Object.values(scorers).sort((a,b)=>b.goals-a.goals);
+    goalRankingCache=ranking;
+    goalRankingLastFetch=now;
+    renderGoalRanking(ranking);
+  }catch(e){
+    el.innerHTML='<div class="empty" style="font-size:12px">得点データを取得できませんでした</div>';
+    console.error(e);
+  }
+}
+
+function renderGoalRanking(ranking){
+  const el=document.getElementById('goal-ranking');
+  if(!el)return;
+  if(!ranking||!ranking.length){
+    el.innerHTML='<div class="empty" style="font-size:12px">まだ得点が記録されていません</div>';return;
+  }
+  // 同得点は同順位
+  let prevGoals=null,rank=0;
+  const medals=['🥇','🥈','🥉'];
+  el.innerHTML=ranking.slice(0,30).map((s,i)=>{
+    if(s.goals!==prevGoals){rank=i+1;prevGoals=s.goals;}
+    const rankDisplay=rank<=3?medals[rank-1]:rank;
+    const jaName=playerName(s.name);
+    const jaTeam=teamName(s.team);
+    const flag=FLAGS[s.team]||'';
+    const pkLabel=s.pk>0?` <span style="font-size:9px;color:var(--text3)">(PK${s.pk})</span>`:'';
+    return`<div class="goal-rank-item">
+      <span class="goal-rank-num">${rankDisplay}</span>
+      <span style="font-size:14px">${flag}</span>
+      <div style="flex:1;min-width:0">
+        <div class="goal-rank-name">${jaName}${pkLabel}</div>
+        <div class="goal-rank-team">${jaTeam}</div>
+      </div>
+      <span class="goal-rank-goals">${s.goals}点</span>
+    </div>`;
+  }).join('');
+}
+
 function renderScorer(){
+  loadGoalRanking(false);
   const myPick=scorerPicks.find(p=>p.user_id===currentUser?.id&&p.player_name);
   // チーム別にグループ化
   const byTeam={};
