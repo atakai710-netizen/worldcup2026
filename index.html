@@ -1530,24 +1530,27 @@ const KO_ROUNDS_DEF=[
 function getKOResult(round,idx){return knockoutResults.find(r=>r.round===round&&r.match_index===idx)||null;}
 
 function getR32Teams(){
-  // Yahoo!スポーツ公式データより（JST日時順、6/28時点）
+  // 画像のトーナメント表の並び順（上から順）
+  // 左側8試合、右側8試合
   return [
-    {home:'South Africa', away:'Canada'},        // 6/29 4:00 ロサンゼルス  A2 vs B1
-    {home:'Brazil',       away:'Japan'},          // 6/30 2:00 ヒューストン  C1 vs F2
-    {home:'Germany',      away:'Paraguay'},       // 6/30 5:30 ボストン     E1 vs 3位
-    {home:'Netherlands',  away:'Morocco'},        // 6/30 10:00 モンテレイ  F1 vs C2
-    {home:'Ivory Coast',  away:'Norway'},         // 7/1 2:00 ダラス       E2 vs I2
-    {home:'France',       away:'Sweden'},         // 7/1 6:00 ニューヨーク  I1 vs 3位
-    {home:'Mexico',       away:'Ecuador'},        // 7/1 10:00 アステカ    A1 vs 3位
-    {home:'England',      away:'DR Congo'},       // 7/2 1:00 アトランタ   L1 vs 3位
-    {home:'Belgium',      away:'Senegal'},        // 7/2 5:00 シアトル     G2 vs 3位
-    {home:'USA',          away:'Bosnia-Herz.'},   // 7/2 9:00 サンフランシスコ D1 vs B3
-    {home:'Spain',        away:'Austria'},         // 7/3 4:00 ロサンゼルス  H1 vs J2
-    {home:'Portugal',     away:'Croatia'},        // 7/3 8:00 トロント     K1 vs L2
-    {home:'Switzerland',  away:'Algeria'},         // 7/3 12:00 バンクーバー B1 vs J3
-    {home:'Australia',    away:'Egypt'},          // 7/4 3:00 ダラス       D2 vs G3
-    {home:'Argentina',    away:'Cabo Verde'},     // 7/4 7:00 マイアミ     J1 vs H2
-    {home:'Colombia',     away:'Ghana'},          // 7/4 10:30 カンザスシティ K2 vs L3
+    // 左側（上から）
+    {home:'Germany',      away:'Paraguay'},       // 6/30 5:30 ボストン
+    {home:'France',       away:'Sweden'},         // 7/1 6:00 ニューヨーク
+    {home:'South Africa', away:'Canada'},         // 6/29 4:00 ロサンゼルス
+    {home:'Netherlands',  away:'Morocco'},        // 6/30 10:00 モンテレイ
+    {home:'Portugal',     away:'Croatia'},        // 7/3 8:00 トロント
+    {home:'Spain',        away:'Austria'},        // 7/3 4:00 ロサンゼルス
+    {home:'USA',          away:'Bosnia-Herz.'},   // 7/2 9:00 サンフランシスコ
+    {home:'Belgium',      away:'Senegal'},        // 7/2 5:00 シアトル
+    // 右側（上から）
+    {home:'Brazil',       away:'Japan'},          // 6/30 2:00 ヒューストン
+    {home:'Ivory Coast',  away:'Norway'},         // 7/1 2:00 ダラス
+    {home:'Mexico',       away:'Ecuador'},        // 7/1 10:00 アステカ
+    {home:'England',      away:'DR Congo'},       // 7/2 1:00 アトランタ
+    {home:'Argentina',    away:'Cabo Verde'},     // 7/4 7:00 マイアミ
+    {home:'Australia',    away:'Egypt'},          // 7/4 3:00 ダラス
+    {home:'Switzerland',  away:'Algeria'},        // 7/3 12:00 バンクーバー
+    {home:'Colombia',     away:'Ghana'},          // 7/4 10:30 カンザスシティ
   ];
 }
 
@@ -1581,11 +1584,25 @@ function getKORoundTeams(round,idx){
     const pair=pairs[idx];
     return{home:pair?.home||null,away:pair?.away||null};
   }
-  const prevRound={r16:'r32',qf:'r16',sf:'qf',f:'sf'}[round];
+  const prevRound={r16:'r32',qf:'r16',sf:'qf',f:'sf','3rd':'sf'}[round];
   if(!prevRound)return{home:null,away:null};
-  const home=getKOResult(prevRound,idx*2)?.winner||null;
-  const away=getKOResult(prevRound,idx*2+1)?.winner||null;
-  return{home,away};
+  if(round==='3rd'){
+    // 3位決定戦: SF0の敗者 vs SF1の敗者
+    const sf0=getKOResult('sf',0);const sf1=getKOResult('sf',1);
+    const{home:h0,away:a0}=getKORoundTeams('sf',0);
+    const{home:h1,away:a1}=getKORoundTeams('sf',1);
+    const loser0=sf0?.winner?(sf0.winner===h0?a0:h0):null;
+    const loser1=sf1?.winner?(sf1.winner===h1?a1:h1):null;
+    return{home:loser0,away:loser1};
+  }
+  // 通常ラウンド: 前ラウンドのidx*2とidx*2+1の勝者
+  const prev0=getKOResult(prevRound,idx*2);
+  const prev1=getKOResult(prevRound,idx*2+1);
+  const{home:h0,away:a0}=getKORoundTeams(prevRound,idx*2);
+  const{home:h1,away:a1}=getKORoundTeams(prevRound,idx*2+1);
+  const home=prev0?.winner||(h0&&!prev0?h0:null);
+  const away=prev1?.winner||(h1&&!prev1?h1:null);
+  return{home:home||null,away:away||null};
 }
 
 function renderBracket(){
