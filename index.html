@@ -1956,7 +1956,12 @@ function renderRanking(){
         if(t===actual1||t===actual2)pts+=1;
       });
     });
-    const cp=champPicks.find(c=>c.user_id===p.id&&c.team_name);
+    // KO予想 +5pt（各試合の勝者が当たった場合）
+    const myKOPicks=knockoutPicks.filter(kp=>kp.user_id===p.id);
+    myKOPicks.forEach(kp=>{
+      const res=knockoutResults.find(r=>r.round===kp.round&&r.match_index===parseInt((kp.match_id||'').split('_')[1]));
+      if(res?.winner&&res.winner===kp.winner)pts+=5;
+    });
     const sp=scorerPicks.find(c=>c.user_id===p.id&&c.player_name);
     const col=AVATARS[i%AVATARS.length];
     const pct=Math.round(preds.length/72*100);
