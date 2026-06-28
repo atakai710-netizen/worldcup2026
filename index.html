@@ -1587,7 +1587,6 @@ function getKORoundTeams(round,idx){
   const prevRound={r16:'r32',qf:'r16',sf:'qf',f:'sf','3rd':'sf'}[round];
   if(!prevRound)return{home:null,away:null};
   if(round==='3rd'){
-    // 3位決定戦: SF0の敗者 vs SF1の敗者
     const sf0=getKOResult('sf',0);const sf1=getKOResult('sf',1);
     const{home:h0,away:a0}=getKORoundTeams('sf',0);
     const{home:h1,away:a1}=getKORoundTeams('sf',1);
@@ -1595,14 +1594,12 @@ function getKORoundTeams(round,idx){
     const loser1=sf1?.winner?(sf1.winner===h1?a1:h1):null;
     return{home:loser0,away:loser1};
   }
-  // 通常ラウンド: 前ラウンドのidx*2とidx*2+1の勝者
-  const prev0=getKOResult(prevRound,idx*2);
-  const prev1=getKOResult(prevRound,idx*2+1);
-  const{home:h0,away:a0}=getKORoundTeams(prevRound,idx*2);
-  const{home:h1,away:a1}=getKORoundTeams(prevRound,idx*2+1);
-  const home=prev0?.winner||(h0&&!prev0?h0:null);
-  const away=prev1?.winner||(h1&&!prev1?h1:null);
-  return{home:home||null,away:away||null};
+  // 前ラウンドの結果（勝者）が確定している場合のみ表示
+  const res0=getKOResult(prevRound,idx*2);
+  const res1=getKOResult(prevRound,idx*2+1);
+  const home=res0?.winner||null;
+  const away=res1?.winner||null;
+  return{home,away};
 }
 
 function renderBracket(){
