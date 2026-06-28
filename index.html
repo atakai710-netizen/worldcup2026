@@ -1534,17 +1534,25 @@ const KO_ROUNDS_DEF=[
 function getKOResult(round,idx){return knockoutResults.find(r=>r.round===round&&r.match_index===idx)||null;}
 
 function getR32Teams(){
-  // グループ突破チームからR32を組む
-  // 組み合わせ: A1vsB2, B1vsA2, C1vsD2, D1vsC2... (FIFA方式)
-  const pairs=[
-    ['A',1,'B',2],['B',1,'A',2],['C',1,'D',2],['D',1,'C',2],
-    ['E',1,'F',2],['F',1,'E',2],['G',1,'H',2],['H',1,'G',2],
-    ['I',1,'J',2],['J',1,'I',2],['K',1,'L',2],['L',1,'K',2],
-    ['A',3,'C',3],['B',3,'D',3],['E',3,'G',3],['F',3,'H',3],
+  // Yahoo!スポーツ公式データより（JST日時順、6/28時点）
+  return [
+    {home:'South Africa', away:'Canada'},        // 6/29 4:00 ロサンゼルス  A2 vs B1
+    {home:'Brazil',       away:'Japan'},          // 6/30 2:00 ヒューストン  C1 vs F2
+    {home:'Germany',      away:'Paraguay'},       // 6/30 5:30 ボストン     E1 vs 3位
+    {home:'Netherlands',  away:'Morocco'},        // 6/30 10:00 モンテレイ  F1 vs C2
+    {home:'Ivory Coast',  away:'Norway'},         // 7/1 2:00 ダラス       E2 vs I2
+    {home:'France',       away:'Sweden'},         // 7/1 6:00 ニューヨーク  I1 vs 3位
+    {home:'Mexico',       away:'Ecuador'},        // 7/1 10:00 アステカ    A1 vs 3位
+    {home:'England',      away:'DR Congo'},       // 7/2 1:00 アトランタ   L1 vs 3位
+    {home:'Belgium',      away:'Senegal'},        // 7/2 5:00 シアトル     G2 vs 3位
+    {home:'USA',          away:'Bosnia-Herz.'},   // 7/2 9:00 サンフランシスコ D1 vs B3
+    {home:'Spain',        away:null},             // 7/3 4:00 ロサンゼルス  H1 vs 未定
+    {home:'Portugal',     away:'Croatia'},        // 7/3 8:00 トロント     K1 vs L2
+    {home:'Switzerland',  away:null},             // 7/3 12:00 バンクーバー B1 vs 未定
+    {home:'Australia',    away:'Egypt'},          // 7/4 3:00 ダラス       D2 vs G3
+    {home:'Argentina',    away:'Cabo Verde'},     // 7/4 7:00 マイアミ     J1 vs H2
+    {home:'Colombia',     away:'Ghana'},          // 7/4 10:30 カンザスシティ K2 vs L3
   ];
-  return pairs.map(([g1,p1,g2,p2])=>{
-    return{home:getGroupTeam(g1,p1),away:getGroupTeam(g2,p2)};
-  });
 }
 
 function getGroupTeam(group,pos){
@@ -1574,7 +1582,8 @@ function getGroupTeam(group,pos){
 function getKORoundTeams(round,idx){
   if(round==='r32'){
     const pairs=getR32Teams();
-    return{home:pairs[idx]?.home||null,away:pairs[idx]?.away||null};
+    const pair=pairs[idx];
+    return{home:pair?.home||null,away:pair?.away||null};
   }
   const prevRound={r16:'r32',qf:'r16',sf:'qf',f:'sf'}[round];
   if(!prevRound)return{home:null,away:null};
