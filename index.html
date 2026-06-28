@@ -1962,6 +1962,7 @@ function renderRanking(){
       const res=knockoutResults.find(r=>r.round===kp.round&&r.match_index===parseInt((kp.match_id||'').split('_')[1]));
       if(res?.winner&&res.winner===kp.winner)pts+=5;
     });
+    const cp=champPicks.find(c=>c.user_id===p.id&&c.team_name);
     const sp=scorerPicks.find(c=>c.user_id===p.id&&c.player_name);
     const col=AVATARS[i%AVATARS.length];
     const pct=Math.round(preds.length/72*100);
