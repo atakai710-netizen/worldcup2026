@@ -1289,12 +1289,20 @@ async function toggleGroupPick(group,team){
 // ── KNOCKOUT ──
 function renderKnockout(){
   const myPicks=knockoutPicks.filter(p=>p.user_id===currentUser?.id);
-  // 実際のR32対戦カードを使用
   const r32pairs=getR32Teams();
   let html='';
   KO_ROUNDS.forEach(round=>{
+    // R32は開始時間順にソート
+    const indices=Array.from({length:round.matches},(_,i)=>i);
+    if(round.id==='r32'){
+      indices.sort((a,b)=>{
+        const sa=KO_KICKOFF[a],sb=KO_KICKOFF[b];
+        if(!sa||!sb)return 0;
+        return getKickoffFromStr(sa.date,sa.time)-getKickoffFromStr(sb.date,sb.time);
+      });
+    }
     html+=`<div class="ko-round-title">⚡ ${round.label}</div>`;
-    for(let i=0;i<round.matches;i++){
+    indices.forEach(i=>{
       const mid=`${round.id}_${i}`;
       const pick=myPicks.find(p=>p.round===round.id&&p.match_id===mid);
       let teamA='?',teamB='?';
@@ -1310,9 +1318,11 @@ function renderKnockout(){
         const locked=isKOMatchLocked(round.id,i);
         const lockLabel=locked?` 🔒`:'';
         const disabledStyle=locked?'opacity:.4;cursor:not-allowed':'';
-        html+=`<div class="ko-match"><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px">${fa} ${tA} vs ${fb} ${tB}${lockLabel}</div><div class="ko-pick-row"><button class="ko-btn${pick?.winner===teamA?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamA}')" ${locked?'disabled':''} style="${disabledStyle}">${fa} ${tA}</button><button class="ko-btn${pick?.winner===teamB?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamB}')" ${locked?'disabled':''} style="${disabledStyle}">${fb} ${tB}</button></div></div>`;
+        const sch=round.id==='r32'?KO_KICKOFF[i]:null;
+        const timeLabel=sch?`<div style="font-size:10px;color:${locked?'var(--red)':'var(--text3)'};margin-bottom:3px">📅 ${sch.date} ${sch.time} JST${lockLabel}</div>`:'';
+        html+=`<div class="ko-match">${timeLabel}<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px">${fa} ${tA} vs ${fb} ${tB}</div><div class="ko-pick-row"><button class="ko-btn${pick?.winner===teamA?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamA}')" ${locked?'disabled':''} style="${disabledStyle}">${fa} ${tA}</button><button class="ko-btn${pick?.winner===teamB?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamB}')" ${locked?'disabled':''} style="${disabledStyle}">${fb} ${tB}</button></div></div>`;
       }
-    }
+    });
   });
   document.getElementById('knockout-list').innerHTML=html;
 }
