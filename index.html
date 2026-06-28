@@ -1307,14 +1307,60 @@ function renderKnockout(){
         html+=`<div class="ko-match"><div style="font-size:12px;color:var(--text3)">前ラウンドの結果待ち</div></div>`;
       } else {
         const tA=teamName(teamA),tB=teamName(teamB);
-        html+=`<div class="ko-match"><div style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px">${fa} ${tA} vs ${fb} ${tB}</div><div class="ko-pick-row"><button class="ko-btn${pick?.winner===teamA?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamA}')">${fa} ${tA}</button><button class="ko-btn${pick?.winner===teamB?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamB}')">${fb} ${tB}</button></div></div>`;
+        const locked=isKOMatchLocked(round.id,i);
+        const lockLabel=locked?` 🔒`:'';
+        const disabledStyle=locked?'opacity:.4;cursor:not-allowed':'';
+        html+=`<div class="ko-match"><div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px">${fa} ${tA} vs ${fb} ${tB}${lockLabel}</div><div class="ko-pick-row"><button class="ko-btn${pick?.winner===teamA?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamA}')" ${locked?'disabled':''} style="${disabledStyle}">${fa} ${tA}</button><button class="ko-btn${pick?.winner===teamB?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamB}')" ${locked?'disabled':''} style="${disabledStyle}">${fb} ${tB}</button></div></div>`;
       }
     }
   });
   document.getElementById('knockout-list').innerHTML=html;
 }
+// KO試合のキックオフ時刻（JST）- getR32Teamsの並び順に対応
+const KO_KICKOFF=[
+  // 左側R32 (idx 0-7)
+  {date:'6/30',time:'5:30'},   // ドイツ vs パラグアイ
+  {date:'7/1', time:'6:00'},   // フランス vs スウェーデン
+  {date:'6/29',time:'4:00'},   // 南アフリカ vs カナダ
+  {date:'6/30',time:'10:00'},  // オランダ vs モロッコ
+  {date:'7/3', time:'8:00'},   // ポルトガル vs クロアチア
+  {date:'7/3', time:'4:00'},   // スペイン vs オーストリア
+  {date:'7/2', time:'9:00'},   // アメリカ vs ボスニア
+  {date:'7/2', time:'5:00'},   // ベルギー vs セネガル
+  // 右側R32 (idx 8-15)
+  {date:'6/30',time:'2:00'},   // ブラジル vs 日本
+  {date:'7/1', time:'2:00'},   // コートジボワール vs ノルウェー
+  {date:'7/1', time:'10:00'},  // メキシコ vs エクアドル
+  {date:'7/2', time:'1:00'},   // イングランド vs DRコンゴ
+  {date:'7/4', time:'7:00'},   // アルゼンチン vs カーボベルデ
+  {date:'7/4', time:'3:00'},   // オーストラリア vs エジプト
+  {date:'7/3', time:'12:00'},  // スイス vs アルジェリア
+  {date:'7/4', time:'10:30'},  // コロンビア vs ガーナ
+];
+
+function isKOMatchLocked(round,matchIdx){
+  if(round==='r32'){
+    const sch=KO_KICKOFF[matchIdx];
+    if(!sch)return false;
+    return Date.now()>=getKickoffFromStr(sch.date,sch.time);
+  }
+  // R16以降は常にロック（未実装）
+  return false;
+}
+function getKickoffFromStr(dateStr,timeStr){
+  const[month,day]=dateStr.split('/').map(Number);
+  const[hour,minRaw]=timeStr.split(':');
+  const h=parseInt(hour),m=parseInt(minRaw)||0;
+  return Date.UTC(2026,month-1,day,h-9,m);
+}
+
 async function setKoPick(round,matchId,winner){
   if(!currentUser)return;
+  // キックオフ時刻チェック
+  const idx=parseInt(matchId.split('_')[1]);
+  if(isKOMatchLocked(round,idx)){
+    showToast('🔒 この試合の予想締切は終了しました');return;
+  }
   const ex=knockoutPicks.find(p=>p.user_id===currentUser.id&&p.round===round&&p.match_id===matchId);
   if(ex?.winner===winner){
     await sb.from('knockout_picks').delete().match({user_id:currentUser.id,round,match_id:matchId});
@@ -1322,7 +1368,7 @@ async function setKoPick(round,matchId,winner){
   }
   if(ex)await sb.from('knockout_picks').update({winner}).match({user_id:currentUser.id,round,match_id:matchId});
   else await sb.from('knockout_picks').insert({user_id:currentUser.id,round,match_id:matchId,winner,group_id:currentGroup.id});
-  await loadKnockoutPicks();renderKnockout();showToast(`${FLAGS[winner]||''} ${winner} を予想しました`);
+  await loadKnockoutPicks();renderKnockout();showToast(`${FLAGS[winner]||''} ${teamName(winner)} を予想しました`);
 }
 
 // ── SCORER ──
