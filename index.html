@@ -2070,6 +2070,8 @@ function initSwipe(){
     const dt=Date.now()-st;
     const target=e.target;
     if(target.closest('.tab-scroll'))return;
+    // KOタブ（bracket）では横スクロールがあるためページ遷移無効
+    if(SECTIONS[currentSectionIdx]==='bracket')return;
     // ページ切り替え：80px以上 かつ 速度0.4px/ms以上 かつ 横>縦×1.5
     if(Math.abs(dx)<80)return;
     if(Math.abs(dx)<Math.abs(dy)*1.5)return;
