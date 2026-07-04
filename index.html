@@ -1292,11 +1292,11 @@ function renderKnockout(){
   const r32pairs=getR32Teams();
   let html='';
   KO_ROUNDS.forEach(round=>{
-    // R32は開始時間順にソート
     const indices=Array.from({length:round.matches},(_,i)=>i);
+    // R32は開始時間順にソート
     if(round.id==='r32'){
       indices.sort((a,b)=>{
-        const sa=KO_KICKOFF[a],sb=KO_KICKOFF[b];
+        const sa=KO_KICKOFF.r32?.[a],sb=KO_KICKOFF.r32?.[b];
         if(!sa||!sb)return 0;
         return getKickoffFromStr(sa.date,sa.time)-getKickoffFromStr(sb.date,sb.time);
       });
@@ -1305,13 +1305,32 @@ function renderKnockout(){
     indices.forEach(i=>{
       const mid=`${round.id}_${i}`;
       const pick=myPicks.find(p=>p.round===round.id&&p.match_id===mid);
-      let teamA='?',teamB='?';
+      let teamA,teamB;
       if(round.id==='r32'){
-        teamA=r32pairs[i]?.home||'?';
-        teamB=r32pairs[i]?.away||'?';
+        teamA=r32pairs[i]?.home||null;
+        teamB=r32pairs[i]?.away||null;
+      } else if(round.id==='r16'){
+        // R16は確定した対戦カードを直接指定
+        const r16pairs=[
+          {home:'Canada',    away:'Morocco'},    // 0: 7/5 2:00
+          {home:'Paraguay',  away:'France'},     // 1: 7/5 6:00
+          {home:'Portugal',  away:'Spain'},      // 2: 7/7 4:00
+          {home:'USA',       away:'Belgium'},    // 3: 7/7 9:00
+          {home:'Brazil',    away:'Norway'},     // 4: 7/6 5:00
+          {home:'Mexico',    away:'England'},    // 5: 7/6 9:00
+          {home:'Argentina', away:'Egypt'},      // 6: 7/8 1:00
+          {home:'Switzerland',away:'Colombia'},  // 7: 7/8 5:00
+        ];
+        teamA=r16pairs[i]?.home||null;
+        teamB=r16pairs[i]?.away||null;
+      } else {
+        // R16以降はknockoutResultsから勝者を取得
+        const{home,away}=getKORoundTeams(round.id,i);
+        teamA=home;teamB=away;
       }
-      const fa=FLAGS[teamA]||'';const fb=FLAGS[teamB]||'';
-      if(teamA==='?'||teamB==='?'){
+      const fa=teamA?FLAGS[teamA]||'':'';
+      const fb=teamB?FLAGS[teamB]||'':'';
+      if(!teamA||!teamB){
         html+=`<div class="ko-match"><div style="font-size:12px;color:var(--text3)">前ラウンドの結果待ち</div></div>`;
       } else {
         const tA=teamName(teamA),tB=teamName(teamB);
