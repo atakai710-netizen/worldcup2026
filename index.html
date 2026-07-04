@@ -1318,7 +1318,7 @@ function renderKnockout(){
         const locked=isKOMatchLocked(round.id,i);
         const lockLabel=locked?` 🔒`:'';
         const disabledStyle=locked?'opacity:.4;cursor:not-allowed':'';
-        const sch=round.id==='r32'?KO_KICKOFF[i]:null;
+        const sch=KO_KICKOFF[round.id]?.[i]||null;
         const timeLabel=sch?`<div style="font-size:10px;color:${locked?'var(--red)':'var(--text3)'};margin-bottom:3px">📅 ${sch.date} ${sch.time} JST${lockLabel}</div>`:'';
         html+=`<div class="ko-match">${timeLabel}<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px">${fa} ${tA} vs ${fb} ${tB}</div><div class="ko-pick-row"><button class="ko-btn${pick?.winner===teamA?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamA}')" ${locked?'disabled':''} style="${disabledStyle}">${fa} ${tA}</button><button class="ko-btn${pick?.winner===teamB?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamB}')" ${locked?'disabled':''} style="${disabledStyle}">${fb} ${tB}</button></div></div>`;
       }
@@ -1327,35 +1327,46 @@ function renderKnockout(){
   document.getElementById('knockout-list').innerHTML=html;
 }
 // KO試合のキックオフ時刻（JST）- getR32Teamsの並び順に対応
-const KO_KICKOFF=[
-  // 左側R32 (idx 0-7)
-  {date:'6/30',time:'5:30'},   // ドイツ vs パラグアイ
-  {date:'7/1', time:'6:00'},   // フランス vs スウェーデン
-  {date:'6/29',time:'4:00'},   // 南アフリカ vs カナダ
-  {date:'6/30',time:'10:00'},  // オランダ vs モロッコ
-  {date:'7/3', time:'8:00'},   // ポルトガル vs クロアチア
-  {date:'7/3', time:'4:00'},   // スペイン vs オーストリア
-  {date:'7/2', time:'9:00'},   // アメリカ vs ボスニア
-  {date:'7/2', time:'5:00'},   // ベルギー vs セネガル
-  // 右側R32 (idx 8-15)
-  {date:'6/30',time:'2:00'},   // ブラジル vs 日本
-  {date:'7/1', time:'2:00'},   // コートジボワール vs ノルウェー
-  {date:'7/1', time:'10:00'},  // メキシコ vs エクアドル
-  {date:'7/2', time:'1:00'},   // イングランド vs DRコンゴ
-  {date:'7/4', time:'7:00'},   // アルゼンチン vs カーボベルデ
-  {date:'7/4', time:'3:00'},   // オーストラリア vs エジプト
-  {date:'7/3', time:'12:00'},  // スイス vs アルジェリア
-  {date:'7/4', time:'10:30'},  // コロンビア vs ガーナ
-];
+const KO_KICKOFF={
+  r32:[
+    // 左側R32 (idx 0-7)
+    {date:'6/30',time:'5:30'},   // ドイツ vs パラグアイ
+    {date:'7/1', time:'6:00'},   // フランス vs スウェーデン
+    {date:'6/29',time:'4:00'},   // 南アフリカ vs カナダ
+    {date:'6/30',time:'10:00'},  // オランダ vs モロッコ
+    {date:'7/3', time:'8:00'},   // ポルトガル vs クロアチア
+    {date:'7/3', time:'4:00'},   // スペイン vs オーストリア
+    {date:'7/2', time:'9:00'},   // アメリカ vs ボスニア
+    {date:'7/2', time:'5:00'},   // ベルギー vs セネガル
+    // 右側R32 (idx 8-15)
+    {date:'6/30',time:'2:00'},   // ブラジル vs 日本
+    {date:'7/1', time:'2:00'},   // コートジボワール vs ノルウェー
+    {date:'7/1', time:'10:00'},  // メキシコ vs エクアドル
+    {date:'7/2', time:'1:00'},   // イングランド vs DRコンゴ
+    {date:'7/4', time:'7:00'},   // アルゼンチン vs カーボベルデ
+    {date:'7/4', time:'3:00'},   // オーストラリア vs エジプト
+    {date:'7/3', time:'12:00'},  // スイス vs アルジェリア
+    {date:'7/4', time:'10:30'},  // コロンビア vs ガーナ
+  ],
+  r16:[
+    // R16 8試合（トーナメント表の並び順に対応）
+    // 左側4試合 (idx 0-3)
+    {date:'7/5', time:'5:00'},   // カナダ vs モロッコ (R32左0,1の勝者)
+    {date:'7/5', time:'2:00'},   // パラグアイ vs フランス (R32左2,3の勝者)
+    {date:'7/7', time:'4:00'},   // ポルトガル vs スペイン (R32左4,5の勝者)
+    {date:'7/7', time:'9:00'},   // アメリカ vs ベルギー (R32左6,7の勝者)
+    // 右側4試合 (idx 4-7)
+    {date:'7/6', time:'5:00'},   // ブラジル vs ノルウェー (R32右0,1の勝者)
+    {date:'7/6', time:'9:00'},   // メキシコ vs イングランド (R32右2,3の勝者)
+    {date:'7/8', time:'1:00'},   // アルゼンチン vs エジプト (R32右4,5の勝者)
+    {date:'7/8', time:'5:00'},   // スイス vs コロンビア (R32右6,7の勝者)
+  ],
+};
 
 function isKOMatchLocked(round,matchIdx){
-  if(round==='r32'){
-    const sch=KO_KICKOFF[matchIdx];
-    if(!sch)return false;
-    return Date.now()>=getKickoffFromStr(sch.date,sch.time);
-  }
-  // R16以降は常にロック（未実装）
-  return false;
+  const sch=KO_KICKOFF[round]?.[matchIdx];
+  if(!sch)return false;
+  return Date.now()>=getKickoffFromStr(sch.date,sch.time);
 }
 function getKickoffFromStr(dateStr,timeStr){
   const[month,day]=dateStr.split('/').map(Number);
