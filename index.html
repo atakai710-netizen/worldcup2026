@@ -1152,9 +1152,9 @@ function renderMatchList(){
       </div>
       <div style="font-size:10px;color:${locked?'var(--red)':'var(--text3)'};margin-bottom:4px;padding-left:2px">${timeLabel}${lockLabel}</div>
       <div class="pred-row">
-        <button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>${hf} ${hn}</button>
-        <button class="pred-btn${p==='D'?' sel-d':''}" onclick="setPred('${m.id}','D')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>🤝 引き分け</button>
-        <button class="pred-btn${p==='L'?' sel-l':''}" onclick="setPred('${m.id}','L')" ${locked?'disabled style="opacity:.4;cursor:not-allowed"':''}>${af} ${an}</button>
+        <button class="pred-btn${p==='W'?' sel-w':''}" onclick="setPred('${m.id}','W')" style="${locked?'pointer-events:none;opacity:.6':''}">${hf} ${hn}</button>
+        <button class="pred-btn${p==='D'?' sel-d':''}" onclick="setPred('${m.id}','D')" style="${locked?'pointer-events:none;opacity:.6':''}"">🤝 引き分け</button>
+        <button class="pred-btn${p==='L'?' sel-l':''}" onclick="setPred('${m.id}','L')" style="${locked?'pointer-events:none;opacity:.6':''}">${af} ${an}</button>
       </div>
     </div>`;
   }).join('');
@@ -1335,10 +1335,10 @@ function renderKnockout(){
         const tA=teamName(teamA),tB=teamName(teamB);
         const locked=isKOMatchLocked(round.id,i);
         const lockLabel=locked?` 🔒`:'';
-        const disabledStyle=locked?'opacity:.4;cursor:not-allowed':'';
+        const lockedStyle=locked?'pointer-events:none;opacity:.6':'';
         const sch=KO_KICKOFF[round.id]?.[i]||null;
         const timeLabel=sch?`<div style="font-size:10px;color:${locked?'var(--red)':'var(--text3)'};margin-bottom:3px">📅 ${sch.date} ${sch.time} JST${lockLabel}</div>`:'';
-        html+=`<div class="ko-match">${timeLabel}<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px">${fa} ${tA} vs ${fb} ${tB}</div><div class="ko-pick-row"><button class="ko-btn${pick?.winner===teamA?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamA}')" ${locked?'disabled':''} style="${disabledStyle}">${fa} ${tA}</button><button class="ko-btn${pick?.winner===teamB?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamB}')" ${locked?'disabled':''} style="${disabledStyle}">${fb} ${tB}</button></div></div>`;
+        html+=`<div class="ko-match">${timeLabel}<div style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:4px">${fa} ${tA} vs ${fb} ${tB}</div><div class="ko-pick-row"><button class="ko-btn${pick?.winner===teamA?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamA}')" style="${lockedStyle}">${fa} ${tA}</button><button class="ko-btn${pick?.winner===teamB?' selected':''}" onclick="setKoPick('${round.id}','${mid}','${teamB}')" style="${lockedStyle}">${fb} ${tB}</button></div></div>`;
       }
     });
   });
