@@ -1293,10 +1293,10 @@ function renderKnockout(){
   let html='';
   KO_ROUNDS.forEach(round=>{
     const indices=Array.from({length:round.matches},(_,i)=>i);
-    // R32は開始時間順にソート
-    if(round.id==='r32'){
+    // キックオフ時間順にソート（match_idは元のidxを維持）
+    if(KO_KICKOFF[round.id]){
       indices.sort((a,b)=>{
-        const sa=KO_KICKOFF.r32?.[a],sb=KO_KICKOFF.r32?.[b];
+        const sa=KO_KICKOFF[round.id]?.[a],sb=KO_KICKOFF[round.id]?.[b];
         if(!sa||!sb)return 0;
         return getKickoffFromStr(sa.date,sa.time)-getKickoffFromStr(sb.date,sb.time);
       });
@@ -2376,3 +2376,4 @@ function showToast(msg){const t=document.getElementById('toast');t.textContent=m
 </script>
 </body>
 </html>
+  
