@@ -1331,10 +1331,14 @@ function renderKnockout(){
         ];
         teamA=qfpairs[i]?.home||null;
         teamB=qfpairs[i]?.away||null;
+      } else if(round.id==='sf'){
+        const sfpairs=[
+          {home:'France',  away:'Spain'},      // 0: 7/15 4:00
+          {home:'England', away:'Argentina'},  // 1: 7/16 4:00
+        ];
+        teamA=sfpairs[i]?.home||null;
+        teamB=sfpairs[i]?.away||null;
       } else {
-        // R16以降はknockoutResultsから勝者を取得
-        const{home,away}=getKORoundTeams(round.id,i);
-        teamA=home;teamB=away;
       }
       const fa=teamA?FLAGS[teamA]||'':'';
       const fb=teamB?FLAGS[teamB]||'':'';
@@ -1390,6 +1394,10 @@ const KO_KICKOFF={
     {date:'7/11',time:'4:00'},   // 1: スペイン vs ベルギー
     {date:'7/12',time:'6:00'},   // 2: ノルウェー vs イングランド
     {date:'7/12',time:'10:00'},  // 3: アルゼンチン vs スイス
+  ],
+  sf:[
+    {date:'7/15',time:'4:00'},   // 0: フランス vs スペイン
+    {date:'7/16',time:'4:00'},   // 1: イングランド vs アルゼンチン
   ],
 };
 
