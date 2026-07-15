@@ -1331,6 +1331,13 @@ function renderKnockout(){
         ];
         teamA=qfpairs[i]?.home||null;
         teamB=qfpairs[i]?.away||null;
+      } else if(round.id==='sf'){
+        const sfpairs=[
+          {home:'France',  away:'Spain'},      // 0: 7/15 4:00
+          {home:'England', away:'Argentina'},  // 1: 7/16 4:00
+        ];
+        teamA=sfpairs[i]?.home||null;
+        teamB=sfpairs[i]?.away||null;
       } else if(round.id==='3rd'){
         // 3位決定戦: SF敗者（SFが終わったら確定）
         const sf0res=getKOResult('sf',0);const sf1res=getKOResult('sf',1);
