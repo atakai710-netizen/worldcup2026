@@ -632,7 +632,7 @@ const TOP_SCORERS=[
   // South Africa 🇿🇦
   {name:'Percy Tau',team:'South Africa',flag:'🇿🇦'},{name:'Lyle Foster',team:'South Africa',flag:'🇿🇦'},{name:'Bongokuhle Hlongwane',team:'South Africa',flag:'🇿🇦'},
 ];
-const KO_ROUNDS=[{id:'r32',label:'ラウンド32',matches:16},{id:'r16',label:'ラウンド16',matches:8},{id:'qf',label:'準々決勝',matches:4},{id:'sf',label:'準決勝',matches:2},{id:'f',label:'決勝',matches:1}];
+const KO_ROUNDS=[{id:'r32',label:'ラウンド32',matches:16},{id:'r16',label:'ラウンド16',matches:8},{id:'qf',label:'準々決勝',matches:4},{id:'sf',label:'準決勝',matches:2},{id:'3rd',label:'3位決定戦',matches:1},{id:'f',label:'決勝',matches:1}];
 
 // JST試合スケジュール（match_id → {date, time, venue}）
 const MATCH_SCHEDULE={
@@ -1331,13 +1331,18 @@ function renderKnockout(){
         ];
         teamA=qfpairs[i]?.home||null;
         teamB=qfpairs[i]?.away||null;
-      } else if(round.id==='sf'){
-        const sfpairs=[
-          {home:'France',  away:'Spain'},      // 0: 7/15 4:00
-          {home:'England', away:'Argentina'},  // 1: 7/16 4:00
-        ];
-        teamA=sfpairs[i]?.home||null;
-        teamB=sfpairs[i]?.away||null;
+      } else if(round.id==='3rd'){
+        // 3位決定戦: SF敗者（SFが終わったら確定）
+        const sf0res=getKOResult('sf',0);const sf1res=getKOResult('sf',1);
+        const sf0teams={home:'France',away:'Spain'};
+        const sf1teams={home:'England',away:'Argentina'};
+        teamA=sf0res?.winner?(sf0res.winner===sf0teams.home?sf0teams.away:sf0teams.home):null;
+        teamB=sf1res?.winner?(sf1res.winner===sf1teams.home?sf1teams.away:sf1teams.home):null;
+      } else if(round.id==='f'){
+        // 決勝: SF勝者
+        const sf0res=getKOResult('sf',0);const sf1res=getKOResult('sf',1);
+        teamA=sf0res?.winner||null;
+        teamB=sf1res?.winner||null;
       } else {
       }
       const fa=teamA?FLAGS[teamA]||'':'';
@@ -1398,6 +1403,12 @@ const KO_KICKOFF={
   sf:[
     {date:'7/15',time:'4:00'},   // 0: フランス vs スペイン
     {date:'7/16',time:'4:00'},   // 1: イングランド vs アルゼンチン
+  ],
+  '3rd':[
+    {date:'7/19',time:'6:00'},   // 0: 3位決定戦（SF敗者）
+  ],
+  f:[
+    {date:'7/20',time:'4:00'},   // 0: 決勝
   ],
 };
 
