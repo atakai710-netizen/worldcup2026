@@ -258,6 +258,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .goal-rank-name{flex:1;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .goal-rank-team{font-size:10px;color:var(--text3)}
 .goal-rank-goals{font-size:14px;font-weight:800;color:var(--blue3);min-width:48px;text-align:right}
+.analysis-row{display:flex;align-items:center;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+.analysis-row:last-child{border-bottom:none}
+.analysis-label{font-size:13px;font-weight:600;color:var(--text);flex:1}
+.analysis-stats{text-align:right}
+.analysis-correct{font-size:13px;font-weight:700;color:var(--blue3)}
+.analysis-rate{font-size:11px;color:var(--text3);margin-top:1px}
+.analysis-pt{font-size:12px;font-weight:700;color:var(--amber2);margin-top:1px}
 </style>
 </head>
 <body>
@@ -418,6 +425,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
           <div class="card-title">仲間内ランキング</div>
           <div style="font-size:11px;color:var(--text3);margin-bottom:10px">GS正解+1pt｜KO正解+5pt｜優勝/得点王正解+10pt</div>
           <div id="ranking-list"><div class="loading"><div class="spinner"></div></div></div>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <div class="card-title">📊 予想結果分析</div>
+          <div style="margin-bottom:10px">
+            <select id="analysis-user-select" onchange="renderAnalysis()" style="width:100%;height:40px;background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:14px;padding:0 10px">
+              <option value="">メンバーを選択...</option>
+            </select>
+          </div>
+          <div id="analysis-result"></div>
         </div>
         <div id="admin-result-section" style="display:none">
           <div class="card">
@@ -2052,6 +2068,7 @@ function renderRanking(){
   if(!scores.length){document.getElementById('ranking-list').innerHTML='<div class="empty">まだ誰も登録していません</div>';return;}
   document.getElementById('ranking-list').innerHTML=scores.map((u,i)=>`<div class="rank-row"><div class="rank-num">${['🥇','🥈','🥉'][i]||i+1}</div><div class="rank-avatar" style="background:${u.col}33;color:${u.col}">${u.name.slice(0,2)}</div><div class="rank-info"><div class="rank-name">${u.name}${u.isAdmin?' 👑':''}</div><div class="rank-sub">${FLAGS[u.champ]||''} ${u.champ?teamName(u.champ):'優勝未予想'} | ⚽${u.scorer?playerName(u.scorer):'得点王未予想'}</div><div class="progress-bar"><div class="progress-fill" style="width:${u.pct}%;background:${u.col}"></div></div></div><div class="rank-pts">${u.pts}pt</div></div>`).join('');
   if(currentProfile?.is_admin)renderResultSection();
+  updateAnalysisSelect();
 }
 function renderResultSection(){
   document.getElementById('result-group-tabs').innerHTML=Object.keys(GROUPS).map(g=>`<button class="gtab${g===resultGroup?' active':''}" onclick="setResultGroup('${g}')">${g}</button>`).join('');
@@ -2217,6 +2234,72 @@ async function loadComments(){
 
 // 得点王正解の保存・取得（Supabaseのgroup設定を使用）
 let topScorerResult=null;
+function updateAnalysisSelect(){
+  const sel=document.getElementById('analysis-user-select');
+  if(!sel)return;
+  const current=sel.value;
+  sel.innerHTML='<option value="">メンバーを選択...</option>'+
+    allProfiles.map(p=>`<option value="${p.id}"${p.id===current?' selected':''}>${p.display_name}</option>`).join('');
+}
+
+function renderAnalysis(){
+  const sel=document.getElementById('analysis-user-select');
+  const userId=sel?.value;
+  const el=document.getElementById('analysis-result');
+  if(!el)return;
+  if(!userId){el.innerHTML='';return;}
+  const gsPreds=allPredictions.filter(pr=>pr.user_id===userId);
+  const gsResultCount=Object.keys(allResults).filter(id=>ALL_MATCHES.find(m=>m.id===id)).length;
+  const gsCorrect=gsPreds.filter(pr=>{const r=allResults[pr.match_id];return r?.result&&r.result===pr.result;}).length;
+  const gsPt=gsCorrect;
+  const advPicks=groupAdvancePicks.filter(ap=>ap.user_id===userId);
+  let advCorrect=0,advTotal=0;
+  advPicks.forEach(ap=>{
+    const g=ap.group_name;
+    const actual1=getGroupTeam(g,1),actual2=getGroupTeam(g,2);
+    if(!actual1||!actual2)return;
+    [ap.team1,ap.team2].filter(Boolean).forEach(t=>{advTotal++;if(t===actual1||t===actual2)advCorrect++;});
+  });
+  const koPicks=knockoutPicks.filter(kp=>kp.user_id===userId);
+  const koResultCount=knockoutResults.filter(r=>r.round!=='3rd'&&r.round!=='f').length+
+    (knockoutResults.find(r=>r.round==='f')?1:0);
+  let koCorrect=0;
+  koPicks.forEach(kp=>{
+    const res=knockoutResults.find(r=>r.round===kp.round&&r.match_index===parseInt((kp.match_id||'').split('_')[1]));
+    if(res?.winner&&res.winner===kp.winner)koCorrect++;
+  });
+  const koPt=koCorrect*5;
+  const champWinner=knockoutResults.find(r=>r.round==='f'&&r.match_index===0)?.winner||null;
+  const cp=champPicks.find(c=>c.user_id===userId&&c.team_name);
+  const champCorrect=cp?.team_name&&champWinner&&cp.team_name===champWinner?1:0;
+  const champPt=champCorrect*10;
+  const sp=scorerPicks.find(c=>c.user_id===userId&&c.player_name);
+  const scorerCorrect=sp?.player_name&&topScorerResult&&sp.player_name===topScorerResult?1:0;
+  const scorerPt=scorerCorrect*10;
+  const totalPt=gsPt+advPt+koPt+champPt+scorerPt;
+  function row(label,correct,resultCount,pt){
+    const rateStr=resultCount>0?`${Math.round(correct/resultCount*100)}%`:'-';
+    return`<div class="analysis-row">
+      <div class="analysis-label">${label}</div>
+      <div class="analysis-stats">
+        <div class="analysis-correct">${correct} / ${resultCount} 正解</div>
+        <div class="analysis-rate">的中率 ${rateStr}</div>
+        <div class="analysis-pt">+${pt}pt</div>
+      </div>
+    </div>`;
+  }
+  el.innerHTML=
+    row('⚽ グループステージ',gsCorrect,gsResultCount,gsPt)+
+    row('📋 グループ突破予想',advCorrect,advTotal,advPt)+
+    row('⚡ ノックアウトステージ',koCorrect,koPicks.length,koPt)+
+    row('🥇 得点王予想',scorerCorrect,topScorerResult?1:0,scorerPt)+
+    row('🏆 優勝国予想',champCorrect,champWinner?1:0,champPt)+
+    `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;margin-top:4px;border-top:2px solid rgba(255,255,255,.15)">
+      <div style="font-size:14px;font-weight:700;color:var(--text)">合計</div>
+      <div style="font-size:20px;font-weight:800;color:var(--amber2)">${totalPt}pt</div>
+    </div>`;
+}
+
 async function loadTopScorerResult(){
   const{data}=await sb.from('groups').select('top_scorer_result').eq('id',currentGroup?.id).single();
   topScorerResult=data?.top_scorer_result||null;
