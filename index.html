@@ -2248,56 +2248,71 @@ function renderAnalysis(){
   const el=document.getElementById('analysis-result');
   if(!el)return;
   if(!userId){el.innerHTML='';return;}
-  const gsPreds=allPredictions.filter(pr=>pr.user_id===userId);
-  const gsResultCount=Object.keys(allResults).filter(id=>ALL_MATCHES.find(m=>m.id===id)).length;
-  const gsCorrect=gsPreds.filter(pr=>{const r=allResults[pr.match_id];return r?.result&&r.result===pr.result;}).length;
-  const gsPt=gsCorrect;
-  const advPicks=groupAdvancePicks.filter(ap=>ap.user_id===userId);
-  let advCorrect=0,advTotal=0;
-  advPicks.forEach(ap=>{
-    const g=ap.group_name;
-    const actual1=getGroupTeam(g,1),actual2=getGroupTeam(g,2);
-    if(!actual1||!actual2)return;
-    [ap.team1,ap.team2].filter(Boolean).forEach(t=>{advTotal++;if(t===actual1||t===actual2)advCorrect++;});
-  });
-  const koPicks=knockoutPicks.filter(kp=>kp.user_id===userId);
-  const koResultCount=knockoutResults.filter(r=>r.round!=='3rd'&&r.round!=='f').length+
-    (knockoutResults.find(r=>r.round==='f')?1:0);
-  let koCorrect=0;
-  koPicks.forEach(kp=>{
-    const res=knockoutResults.find(r=>r.round===kp.round&&r.match_index===parseInt((kp.match_id||'').split('_')[1]));
-    if(res?.winner&&res.winner===kp.winner)koCorrect++;
-  });
-  const koPt=koCorrect*5;
-  const champWinner=knockoutResults.find(r=>r.round==='f'&&r.match_index===0)?.winner||null;
-  const cp=champPicks.find(c=>c.user_id===userId&&c.team_name);
-  const champCorrect=cp?.team_name&&champWinner&&cp.team_name===champWinner?1:0;
-  const champPt=champCorrect*10;
-  const sp=scorerPicks.find(c=>c.user_id===userId&&c.player_name);
-  const scorerCorrect=sp?.player_name&&topScorerResult&&sp.player_name===topScorerResult?1:0;
-  const scorerPt=scorerCorrect*10;
-  const totalPt=gsPt+advPt+koPt+champPt+scorerPt;
-  function row(label,correct,resultCount,pt){
-    const rateStr=resultCount>0?`${Math.round(correct/resultCount*100)}%`:'-';
-    return`<div class="analysis-row">
-      <div class="analysis-label">${label}</div>
-      <div class="analysis-stats">
-        <div class="analysis-correct">${correct} / ${resultCount} 正解</div>
-        <div class="analysis-rate">的中率 ${rateStr}</div>
-        <div class="analysis-pt">+${pt}pt</div>
-      </div>
-    </div>`;
+  try{
+    // GS予想
+    const gsPreds=allPredictions.filter(pr=>pr.user_id===userId);
+    const gsResultCount=Object.keys(allResults).filter(id=>ALL_MATCHES.find(m=>m.id===id)).length;
+    const gsCorrect=gsPreds.filter(pr=>{const r=allResults[pr.match_id];return r?.result&&r.result===pr.result;}).length;
+    const gsPt=gsCorrect;
+    // GS突破予想
+    const advPicks=groupAdvancePicks.filter(ap=>ap.user_id===userId);
+    let advCorrect=0,advTotal=0;
+    advPicks.forEach(ap=>{
+      try{
+        const g=ap.group_name;
+        const actual1=getGroupTeam(g,1),actual2=getGroupTeam(g,2);
+        [ap.team1,ap.team2].filter(Boolean).forEach(t=>{
+          advTotal++;
+          if(actual1&&actual2&&(t===actual1||t===actual2))advCorrect++;
+        });
+      }catch(e){}
+    });
+    const advPt=advCorrect;
+    // KO予想
+    const koPicks=knockoutPicks.filter(kp=>kp.user_id===userId);
+    let koCorrect=0;
+    koPicks.forEach(kp=>{
+      const idx=parseInt((kp.match_id||'').split('_')[1]);
+      const res=knockoutResults.find(r=>r.round===kp.round&&r.match_index===idx);
+      if(res?.winner&&res.winner===kp.winner)koCorrect++;
+    });
+    const koResultCount=knockoutResults.length;
+    const koPt=koCorrect*5;
+    // 優勝予想
+    const champWinner=knockoutResults.find(r=>r.round==='f'&&r.match_index===0)?.winner||null;
+    const cp=champPicks.find(c=>c.user_id===userId&&c.team_name);
+    const champCorrect=cp?.team_name&&champWinner&&cp.team_name===champWinner?1:0;
+    const champPt=champCorrect*10;
+    // 得点王予想
+    const sp=scorerPicks.find(c=>c.user_id===userId&&c.player_name);
+    const scorerCorrect=sp?.player_name&&topScorerResult&&sp.player_name===topScorerResult?1:0;
+    const scorerPt=scorerCorrect*10;
+    const totalPt=gsPt+advPt+koPt+champPt+scorerPt;
+    function row(label,correct,resultCount,pt){
+      const rateStr=resultCount>0?`${Math.round(correct/Math.max(resultCount,1)*100)}%`:'-';
+      return`<div class="analysis-row">
+        <div class="analysis-label">${label}</div>
+        <div class="analysis-stats">
+          <div class="analysis-correct">${correct} / ${resultCount} 正解</div>
+          <div class="analysis-rate">的中率 ${rateStr}</div>
+          <div class="analysis-pt">+${pt}pt</div>
+        </div>
+      </div>`;
+    }
+    el.innerHTML=
+      row('⚽ グループステージ',gsCorrect,gsResultCount,gsPt)+
+      row('📋 グループ突破予想',advCorrect,advTotal,advPt)+
+      row('⚡ ノックアウトステージ',koCorrect,koResultCount,koPt)+
+      row('🥇 得点王予想',scorerCorrect,topScorerResult?1:0,scorerPt)+
+      row('🏆 優勝国予想',champCorrect,champWinner?1:0,champPt)+
+      `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;margin-top:4px;border-top:2px solid rgba(255,255,255,.15)">
+        <div style="font-size:14px;font-weight:700;color:var(--text)">合計</div>
+        <div style="font-size:20px;font-weight:800;color:var(--amber2)">${totalPt}pt</div>
+      </div>`;
+  }catch(e){
+    el.innerHTML=`<div style="color:var(--red);font-size:12px">エラー: ${e.message}</div>`;
+    console.error('renderAnalysis error:',e);
   }
-  el.innerHTML=
-    row('⚽ グループステージ',gsCorrect,gsResultCount,gsPt)+
-    row('📋 グループ突破予想',advCorrect,advTotal,advPt)+
-    row('⚡ ノックアウトステージ',koCorrect,koPicks.length,koPt)+
-    row('🥇 得点王予想',scorerCorrect,topScorerResult?1:0,scorerPt)+
-    row('🏆 優勝国予想',champCorrect,champWinner?1:0,champPt)+
-    `<div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;margin-top:4px;border-top:2px solid rgba(255,255,255,.15)">
-      <div style="font-size:14px;font-weight:700;color:var(--text)">合計</div>
-      <div style="font-size:20px;font-weight:800;color:var(--amber2)">${totalPt}pt</div>
-    </div>`;
 }
 
 async function loadTopScorerResult(){
